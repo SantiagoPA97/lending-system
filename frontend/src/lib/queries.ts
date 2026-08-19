@@ -6,6 +6,8 @@ import {
 } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type {
+  AssistantQueryRequest,
+  AssistantQueryResponse,
   AuditLogResponse,
   CompanyDetailResponse,
   CompanyRequest,
@@ -247,6 +249,13 @@ export function useDashboardMetrics() {
     queryKey: queryKeys.dashboard,
     queryFn: () => api.get<DashboardMetricsResponse>('/api/dashboard/metrics'),
     refetchInterval: 60_000,
+  })
+}
+
+export function useAssistantQuery() {
+  return useMutation({
+    mutationFn: (body: AssistantQueryRequest) =>
+      api.post<AssistantQueryResponse>('/api/assistant/query', body),
   })
 }
 

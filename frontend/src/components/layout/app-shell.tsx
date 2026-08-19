@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Banknote, Building2, CircleUserRound, LayoutDashboard, Loader2, LogOut, Search } from 'lucide-react'
+import { Banknote, Building2, CircleUserRound, LayoutDashboard, Loader2, LogOut, Search, Sparkles } from 'lucide-react'
 import { useAuth, useLogout, usePermissions } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/companies', label: 'Companies', icon: Building2 },
   { to: '/facilities', label: 'Facilities', icon: Banknote },
   { to: '/search', label: 'Search', icon: Search },
+  { to: '/assistant', label: 'Assistant', icon: Sparkles },
 ]
 
 function QuickSearch() {

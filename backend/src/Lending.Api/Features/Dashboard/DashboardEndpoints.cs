@@ -26,14 +26,20 @@ public static class DashboardEndpoints
         HybridCache cache,
         CancellationToken cancellationToken)
     {
-        var metrics = await cache.GetOrCreateAsync(
+        var metrics = await GetCachedMetricsAsync(db, cache, cancellationToken);
+        return Results.Ok(metrics);
+    }
+
+    // Shared with the AI assistant's get_portfolio_summary tool so both read the same cache entry.
+    public static async Task<DashboardMetricsResponse> GetCachedMetricsAsync(
+        LendingDbContext db,
+        HybridCache cache,
+        CancellationToken cancellationToken) =>
+        await cache.GetOrCreateAsync(
             "dashboard:metrics",
             async ct => await BuildMetricsAsync(db, ct),
             CacheOptions,
             cancellationToken: cancellationToken);
-
-        return Results.Ok(metrics);
-    }
 
     private static async Task<DashboardMetricsResponse> BuildMetricsAsync(
         LendingDbContext db,

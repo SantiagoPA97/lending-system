@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Lending.Api.Common;
+using Lending.Api.Features.Assistant;
 using Lending.Api.Features.Audit;
 using Lending.Api.Features.Auth;
 using Lending.Api.Features.Companies;
@@ -107,6 +108,7 @@ try
     api.MapGroup("/search").MapSearchEndpoints().WithTags("Search");
     api.MapGroup("/dashboard").MapDashboardEndpoints().WithTags("Dashboard");
     api.MapGroup("/audit").MapAuditEndpoints().WithTags("Audit");
+    api.MapGroup("/assistant").MapAssistantEndpoints().WithTags("Assistant");
 
     app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
     app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = r => r.Tags.Contains("ready") });

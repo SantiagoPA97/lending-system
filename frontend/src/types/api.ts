@@ -262,6 +262,27 @@ export interface AuditLogResponse {
   newValues: unknown
 }
 
+export interface AssistantChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface AssistantQueryRequest {
+  question: string
+  history?: AssistantChatMessage[]
+}
+
+export interface AssistantToolCallResponse {
+  name: string
+  summary: string
+}
+
+export interface AssistantQueryResponse {
+  configured: boolean
+  answer: string | null
+  toolCalls: AssistantToolCallResponse[]
+}
+
 export type AuthMode = 'Bypass' | 'Auth0'
 
 export type Role = 'viewer' | 'operator' | 'admin'
