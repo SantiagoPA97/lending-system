@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Lending.Api.Common;
@@ -16,6 +17,9 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter())

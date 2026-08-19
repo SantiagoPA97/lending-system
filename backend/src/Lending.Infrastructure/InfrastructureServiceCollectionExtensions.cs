@@ -1,4 +1,5 @@
 using Lending.Domain;
+using Lending.Infrastructure.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -13,6 +14,7 @@ public static class InfrastructureServiceCollectionExtensions
     {
         services.TryAddScoped<ICurrentUser, SystemCurrentUser>();
         services.TryAddSingleton<IScheduleCalculator, ScheduleCalculator>();
+        services.TryAddScoped<ISearchService, PostgresSearchService>();
         services.AddScoped<AuditSaveChangesInterceptor>();
         services.AddDbContext<LendingDbContext>((sp, options) => options
             .UseNpgsql(connectionString)
