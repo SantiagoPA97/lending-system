@@ -13,9 +13,14 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      # The newest SDK builds the .slnx solution; the 8.0 runtime executes the
+      # net8.0 test projects. Integration tests use Testcontainers against the
+      # runner's Docker daemon.
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.x
+          dotnet-version: |
+            8.x
+            10.x
       - run: dotnet restore
       - run: dotnet build --no-restore --configuration Release
       - run: dotnet test --no-build --configuration Release
@@ -33,6 +38,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npm test
       - run: npm run build
 
   deploy:
