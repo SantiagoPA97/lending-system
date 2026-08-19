@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, Info } from 'lucide-react'
 import { MoneyValue } from '@/components/domain/money-value'
 import { Card } from '@/components/ui/card'
@@ -121,8 +121,12 @@ function DraftProjection({ facility }: { facility: FacilityDetailResponse }) {
   const preview = useSchedulePreview()
   const [projection, setProjection] = useState<SchedulePreviewResponse | null>(null)
   const [failed, setFailed] = useState(false)
+  const requestSeq = useRef(0)
 
   useEffect(() => {
+    const seq = ++requestSeq.current
+    setFailed(false)
+    setProjection(null)
     preview
       .mutateAsync({
         commitmentAmount: facility.commitmentAmount,
@@ -132,8 +136,12 @@ function DraftProjection({ facility }: { facility: FacilityDetailResponse }) {
         startDate: facility.startDate,
         repaymentType: facility.repaymentType,
       })
-      .then(setProjection)
-      .catch(() => setFailed(true))
+      .then((result) => {
+        if (requestSeq.current === seq) setProjection(result)
+      })
+      .catch(() => {
+        if (requestSeq.current === seq) setFailed(true)
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facility.id, facility.updatedAtUtc])
 

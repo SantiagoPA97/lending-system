@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { repaymentTypeLabels } from '@/lib/labels'
 import { cn } from '@/lib/utils'
 import { CURRENCIES, REPAYMENT_TYPES } from '@/types/api'
 
@@ -20,12 +21,6 @@ const typeOptions = [
 ]
 
 const statusOptions = ['Active', 'Draft', 'Completed', 'Cancelled', 'Defaulted', 'Inactive']
-
-const repaymentTypeLabels: Record<string, string> = {
-  Bullet: 'Bullet',
-  Amortizing: 'Amortizing',
-  InterestOnly: 'Interest-only',
-}
 
 function Chip({
   selected,

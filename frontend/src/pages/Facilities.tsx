@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X } from 'lucide-react'
 import { DataTable, type Column } from '@/components/domain/data-table'
 import { MoneyValue } from '@/components/domain/money-value'
@@ -11,24 +11,38 @@ import { Card } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
 import { usePermissions } from '@/lib/auth'
 import { formatDate } from '@/lib/format'
+import { repaymentTypeLabel, repaymentTypeLabels } from '@/lib/labels'
 import { useCompanies, useFacilities } from '@/lib/queries'
 import { CURRENCIES, FACILITY_STATUSES, REPAYMENT_TYPES, type FacilityResponse } from '@/types/api'
 
-const typeLabels: Record<string, string> = {
-  Bullet: 'Bullet',
-  Amortizing: 'Amortizing',
-  InterestOnly: 'Interest only',
-}
-
 export default function Facilities() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState('')
   const [repaymentType, setRepaymentType] = useState('')
   const [currency, setCurrency] = useState('')
   const [companyId, setCompanyId] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const [createCompanyId, setCreateCompanyId] = useState('')
   const { canOperate } = usePermissions()
+
+  // Deep link from a company page: /facilities?new=1&companyId=… opens the
+  // create dialog preselected, then cleans the URL so refresh doesn't reopen it.
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return
+    setCreateCompanyId(searchParams.get('companyId') ?? '')
+    setCreateOpen(true)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('new')
+        next.delete('companyId')
+        return next
+      },
+      { replace: true },
+    )
+  }, [searchParams, setSearchParams])
 
   const facilities = useFacilities({
     page,
@@ -63,7 +77,7 @@ export default function Facilities() {
     {
       key: 'type',
       header: 'Type',
-      cell: (f) => <span className="text-muted">{typeLabels[f.repaymentType]}</span>,
+      cell: (f) => <span className="text-muted">{repaymentTypeLabel(f.repaymentType)}</span>,
     },
     {
       key: 'amount',
@@ -128,7 +142,7 @@ export default function Facilities() {
           <option value="">All types</option>
           {REPAYMENT_TYPES.map((t) => (
             <option key={t} value={t}>
-              {typeLabels[t]}
+              {repaymentTypeLabels[t]}
             </option>
           ))}
         </Select>
@@ -193,7 +207,16 @@ export default function Facilities() {
           }
         />
       </Card>
-      {createOpen && <FacilityFormDialog open onClose={() => setCreateOpen(false)} />}
+      {createOpen && (
+        <FacilityFormDialog
+          open
+          initialCompanyId={createCompanyId}
+          onClose={() => {
+            setCreateOpen(false)
+            setCreateCompanyId('')
+          }}
+        />
+      )}
     </>
   )
 }

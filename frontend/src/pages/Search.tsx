@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Building2, ChevronLeft, ChevronRight, Landmark, SearchX, Search as SearchIcon } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, Landmark, SearchX, Search as SearchIcon, TriangleAlert } from 'lucide-react'
 import { PageHeader } from '@/components/domain/page-header'
 import { StatusBadge } from '@/components/domain/status-badge'
 import { MoneyValue } from '@/components/domain/money-value'
@@ -9,7 +9,10 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SkeletonRows } from '@/components/ui/skeleton'
+import { ApiError } from '@/lib/api'
+import { repaymentTypeLabel } from '@/lib/labels'
 import { useSearch } from '@/lib/queries'
+import { isCompanyResult, normalizeAmountRange, searchResultPath } from '@/lib/search-result'
 import type { SearchResultResponse } from '@/types/api'
 
 const filterKeys = ['type', 'status', 'repaymentType', 'currency', 'minAmount', 'maxAmount'] as const
@@ -20,7 +23,7 @@ function parseAmount(value: string): number | undefined {
 }
 
 function ResultRow({ result, onOpen }: { result: SearchResultResponse; onOpen: () => void }) {
-  const isCompany = result.type === 'Company'
+  const isCompany = isCompanyResult(result)
   const Icon = isCompany ? Building2 : Landmark
   return (
     <li>
@@ -41,7 +44,7 @@ function ResultRow({ result, onOpen }: { result: SearchResultResponse; onOpen: (
           </span>
           <span className="mt-0.5 block truncate text-[13px] text-muted">
             {isCompany ? 'Company' : `Facility · ${result.companyName}`}
-            {!isCompany && result.repaymentType ? ` · ${result.repaymentType}` : ''}
+            {!isCompany && result.repaymentType ? ` · ${repaymentTypeLabel(result.repaymentType)}` : ''}
           </span>
         </span>
         {!isCompany && result.currency && (
@@ -139,16 +142,20 @@ export default function Search() {
   }
 
   const hasCriteria = urlQuery !== '' || filterKeys.some((key) => filters[key] !== '')
+  const [minAmount, maxAmount] = normalizeAmountRange(
+    parseAmount(filters.minAmount),
+    parseAmount(filters.maxAmount),
+  )
 
-  const { data, isLoading, isFetching } = useSearch(
+  const { data, isLoading, isFetching, isError, error, refetch } = useSearch(
     {
       q: urlQuery || undefined,
       type: filters.type || undefined,
       status: filters.status || undefined,
       repaymentType: filters.repaymentType || undefined,
       currency: filters.currency || undefined,
-      minAmount: parseAmount(filters.minAmount),
-      maxAmount: parseAmount(filters.maxAmount),
+      minAmount,
+      maxAmount,
       page,
       pageSize: 20,
     },
@@ -197,6 +204,21 @@ export default function Search() {
         <Card>
           <SkeletonRows rows={6} />
         </Card>
+      ) : isError ? (
+        <Card>
+          <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
+            <TriangleAlert className="size-7 text-danger" />
+            <p className="text-sm font-medium text-ink">The search could not be run</p>
+            <p className="max-w-md text-sm text-muted">
+              {error instanceof ApiError
+                ? error.detail || error.title
+                : 'Something went wrong. Try again.'}
+            </p>
+            <Button variant="secondary" size="sm" className="mt-1" onClick={() => void refetch()}>
+              Try again
+            </Button>
+          </div>
+        </Card>
       ) : !data || data.items.length === 0 ? (
         <Card>
           <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
@@ -230,13 +252,7 @@ export default function Search() {
               <ResultRow
                 key={`${result.type}-${result.id}`}
                 result={result}
-                onOpen={() =>
-                  navigate(
-                    result.type === 'Company'
-                      ? `/companies/${result.id}`
-                      : `/facilities/${result.id}`,
-                  )
-                }
+                onOpen={() => navigate(searchResultPath(result))}
               />
             ))}
           </ul>

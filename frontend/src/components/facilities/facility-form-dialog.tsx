@@ -12,6 +12,7 @@ import { SchedulePreviewPanel, type PreviewState } from '@/components/facilities
 import { facilityErrorMessage } from '@/components/facilities/facility-errors'
 import { ApiError } from '@/lib/api'
 import { toDateInputValue } from '@/lib/format'
+import { repaymentTypeLabels } from '@/lib/labels'
 import { cn } from '@/lib/utils'
 import {
   useCompanies,
@@ -47,22 +48,10 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-const repaymentTypeOptions: { value: FormValues['repaymentType']; label: string; blurb: string }[] = [
-  {
-    value: 'Amortizing',
-    label: 'Amortizing',
-    blurb: 'Equal monthly installments of principal and interest.',
-  },
-  {
-    value: 'InterestOnly',
-    label: 'Interest only',
-    blurb: 'Monthly interest with a principal balloon at maturity.',
-  },
-  {
-    value: 'Bullet',
-    label: 'Bullet',
-    blurb: 'A single payment of principal and interest at maturity.',
-  },
+const repaymentTypeOptions: { value: FormValues['repaymentType']; blurb: string }[] = [
+  { value: 'Amortizing', blurb: 'Equal monthly installments of principal and interest.' },
+  { value: 'InterestOnly', blurb: 'Monthly interest with a principal balloon at maturity.' },
+  { value: 'Bullet', blurb: 'A single payment of principal and interest at maturity.' },
 ]
 
 function toTerms(values: FormValues): FacilityTermsRequest {
@@ -80,10 +69,12 @@ export function FacilityFormDialog({
   open,
   onClose,
   facility,
+  initialCompanyId,
 }: {
   open: boolean
   onClose: () => void
   facility?: FacilityDetailResponse
+  initialCompanyId?: string
 }) {
   const navigate = useNavigate()
   const createFacility = useCreateFacility()
@@ -110,7 +101,7 @@ export function FacilityFormDialog({
           repaymentType: facility.repaymentType,
         }
       : {
-          companyId: '',
+          companyId: initialCompanyId ?? '',
           commitmentAmount: '',
           currency: 'USD',
           annualInterestRate: '',
@@ -326,7 +317,9 @@ export function FacilityFormDialog({
                       {...register('repaymentType')}
                     />
                     <span>
-                      <span className="block text-sm font-medium text-ink">{option.label}</span>
+                      <span className="block text-sm font-medium text-ink">
+                        {repaymentTypeLabels[option.value]}
+                      </span>
                       <span className="block text-[13px] text-muted">{option.blurb}</span>
                     </span>
                   </label>

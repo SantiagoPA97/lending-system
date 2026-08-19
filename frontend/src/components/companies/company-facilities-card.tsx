@@ -14,13 +14,8 @@ import { StatusBadge } from '@/components/domain/status-badge'
 import { MoneyValue } from '@/components/domain/money-value'
 import { usePermissions } from '@/lib/auth'
 import { formatDate, percent } from '@/lib/format'
+import { repaymentTypeLabel } from '@/lib/labels'
 import type { CompanyDetailResponse } from '@/types/api'
-
-const repaymentTypeLabels: Record<string, string> = {
-  Bullet: 'Bullet',
-  Amortizing: 'Amortizing',
-  InterestOnly: 'Interest-only',
-}
 
 export function CompanyFacilitiesCard({ company }: { company: CompanyDetailResponse }) {
   const navigate = useNavigate()
@@ -92,7 +87,7 @@ export function CompanyFacilitiesCard({ company }: { company: CompanyDetailRespo
                 <TableCell className="font-mono text-[13px] font-medium text-accent">
                   {f.reference}
                 </TableCell>
-                <TableCell>{repaymentTypeLabels[f.repaymentType] ?? f.repaymentType}</TableCell>
+                <TableCell>{repaymentTypeLabel(f.repaymentType)}</TableCell>
                 <TableCell className="tabular text-right">{percent(f.annualInterestRate)}</TableCell>
                 <TableCell className="tabular text-right">{f.termMonths} mo</TableCell>
                 <TableCell className="whitespace-nowrap">{formatDate(f.startDate)}</TableCell>

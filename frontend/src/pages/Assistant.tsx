@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/domain/page-header'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { truncateForHistory } from '@/lib/assistant'
 import { useAssistantQuery } from '@/lib/queries'
 import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -196,7 +197,7 @@ export default function Assistant() {
     const history: AssistantChatMessage[] = messages
       .filter((m) => !m.isError)
       .slice(-10)
-      .map((m) => ({ role: m.role, content: m.content }))
+      .map((m) => ({ role: m.role, content: truncateForHistory(m.content) }))
 
     setMessages((prev) => [...prev, { role: 'user', content: trimmed }])
     setInput('')

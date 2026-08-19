@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ApiError } from '@/lib/api'
 import { usePermissions } from '@/lib/auth'
 import { formatDate, percent, toDateInputValue } from '@/lib/format'
+import { repaymentTypeLabel } from '@/lib/labels'
 import {
   useActivateFacility,
   useCancelFacility,
@@ -29,12 +30,6 @@ import {
 import type { FacilityDetailResponse } from '@/types/api'
 
 type PendingAction = 'activate' | 'cancel' | 'default' | null
-
-const typeLabels: Record<string, string> = {
-  Bullet: 'Bullet',
-  Amortizing: 'Amortizing',
-  InterestOnly: 'Interest only',
-}
 
 export default function FacilityDetail() {
   const { id = '' } = useParams<{ id: string }>()
@@ -136,7 +131,7 @@ function FacilityView({ facility }: { facility: FacilityDetailResponse }) {
             </Link>
             {facility.company.status === 'Inactive' && <StatusBadge status="Inactive" />}
             <span className="text-faint">·</span>
-            <span>{typeLabels[facility.repaymentType]}</span>
+            <span>{repaymentTypeLabel(facility.repaymentType)}</span>
             <span className="text-faint">·</span>
             <span className="tabular">{percent(facility.annualInterestRate)}</span>
             <span className="text-faint">·</span>

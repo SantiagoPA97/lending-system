@@ -12,12 +12,13 @@ import { apiErrorMessage } from '@/components/companies/company-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ApiError } from '@/lib/api'
 import { usePermissions } from '@/lib/auth'
 import { useActivateCompany, useCompany, useDeactivateCompany } from '@/lib/queries'
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
-  const { data: company, isLoading, isError } = useCompany(id ?? '')
+  const { data: company, isLoading, isError, error, refetch } = useCompany(id ?? '')
   const deactivate = useDeactivateCompany()
   const activate = useActivateCompany()
   const [confirming, setConfirming] = useState<'deactivate' | 'activate' | null>(null)
@@ -34,13 +35,23 @@ export default function CompanyDetail() {
   }
 
   if (isError || !company) {
+    const notFound = error instanceof ApiError && error.status === 404
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
-          <p className="text-sm font-medium text-ink">Company not found</p>
-          <p className="text-sm text-muted">
-            It may have been removed, or the link is out of date.
+          <p className="text-sm font-medium text-ink">
+            {notFound ? 'Company not found' : 'The company could not be loaded'}
           </p>
+          <p className="text-sm text-muted">
+            {notFound
+              ? 'It may have been removed, or the link is out of date.'
+              : apiErrorMessage(error)}
+          </p>
+          {!notFound && (
+            <Button variant="secondary" size="sm" onClick={() => void refetch()}>
+              Try again
+            </Button>
+          )}
           <Link to="/companies" className="text-sm font-medium text-accent hover:text-accent-hover">
             Back to companies
           </Link>

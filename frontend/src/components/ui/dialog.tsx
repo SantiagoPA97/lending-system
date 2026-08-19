@@ -15,7 +15,11 @@ const FOCUSABLE =
 
 export function Dialog({ open, onClose, children, className }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
+  // Keyed on `open` only so initial focus runs once per closed→open transition,
+  // not on every parent re-render with a new inline onClose.
   useEffect(() => {
     if (!open) return
     const previouslyFocused = document.activeElement as HTMLElement | null
@@ -31,7 +35,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab') return
@@ -58,7 +62,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
       document.body.style.overflow = ''
       previouslyFocused?.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
