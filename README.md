@@ -16,11 +16,11 @@ Prerequisites: .NET 8 SDK, Node 22, Docker.
 # 1. Database
 docker compose up -d postgres
 
-# 2. API (from backend/) — http://localhost:5000, Swagger UI at /swagger
-ASPNETCORE_URLS=http://localhost:5000 MIGRATE_ON_STARTUP=true SEED_DEMO_DATA=true \
-  dotnet run --project src/Lending.Api --no-launch-profile
+# 2. API (from backend/) — http://localhost:5080, Swagger UI at /swagger
+# (the launch profile sets Development env, migrations and demo seed)
+dotnet run --project src/Lending.Api
 
-# 3. Frontend (from frontend/) — http://localhost:5173, proxies /api and /auth to :5000
+# 3. Frontend (from frontend/) — http://localhost:5173, proxies /api and /auth to :5080
 npm install
 npm run dev
 ```
@@ -147,8 +147,8 @@ Dockerfile                     multi-stage: build SPA → publish API → serve 
 ## Appendix: Auth0 setup
 
 1. **Application:** create a **Regular Web Application** (the BFF is a confidential client — not a SPA app type).
-   - Allowed Callback URLs: `http://localhost:5000/auth/callback`, `https://app-production-d9f8.up.railway.app/auth/callback`
-   - Allowed Logout URLs: `http://localhost:5000/`, `https://app-production-d9f8.up.railway.app/`
+   - Allowed Callback URLs: `http://localhost:5080/auth/callback`, `https://app-production-d9f8.up.railway.app/auth/callback`
+   - Allowed Logout URLs: `http://localhost:5080/`, `https://app-production-d9f8.up.railway.app/`
 2. **Roles:** under User Management → Roles, create `viewer`, `operator`, `admin` and assign them to users.
 3. **Action:** add a post-login Action (Actions → Triggers → post-login) so roles reach the ID token:
 

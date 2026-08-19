@@ -23,8 +23,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:5000',
-      '/auth': 'http://localhost:5000',
+      '/api': 'http://localhost:5080',
+      '/auth': 'http://localhost:5080',
     },
   },
 })

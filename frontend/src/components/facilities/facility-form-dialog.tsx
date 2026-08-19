@@ -113,15 +113,20 @@ export function FacilityFormDialog({
         },
   })
 
-  // The company select is uncontrolled, so a preselected companyId set before
-  // the options query resolves is dropped by the browser (no matching option
-  // yet). Re-apply it once when the active-company list arrives.
+  // The company select is uncontrolled, so a preselected companyId applied
+  // before the options query resolves is dropped by the DOM (no matching
+  // option yet) while react-hook-form's state still holds it. Once the option
+  // list arrives, force a setValue so the DOM re-syncs — unless the user
+  // already picked a different company.
   const appliedInitialCompany = useRef(false)
   useEffect(() => {
     if (facility || !initialCompanyId || appliedInitialCompany.current) return
     if (!activeCompanies.data?.items.some((c) => c.id === initialCompanyId)) return
     appliedInitialCompany.current = true
-    if (!getValues('companyId')) setValue('companyId', initialCompanyId)
+    const current = getValues('companyId')
+    if (current && current !== initialCompanyId) return
+    setValue('companyId', '', { shouldValidate: false })
+    setValue('companyId', initialCompanyId, { shouldValidate: false })
   }, [activeCompanies.data, facility, initialCompanyId, getValues, setValue])
 
   const [preview, setPreview] = useState<SchedulePreviewResponse | null>(null)

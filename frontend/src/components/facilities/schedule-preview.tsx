@@ -58,8 +58,7 @@ export function SchedulePreviewPanel({
                   <TableHead className="first:pl-4">#</TableHead>
                   <TableHead>Due</TableHead>
                   <TableHead className="text-right">Principal</TableHead>
-                  <TableHead className="text-right">Interest</TableHead>
-                  <TableHead className="text-right last:pr-4">Total</TableHead>
+                  <TableHead className="text-right last:pr-4">Interest</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -70,11 +69,8 @@ export function SchedulePreviewPanel({
                     <TableCell className="py-1.5 text-right">
                       <MoneyValue amount={item.principalDue} currency={preview.currency} muted hideCurrency />
                     </TableCell>
-                    <TableCell className="py-1.5 text-right">
-                      <MoneyValue amount={item.interestDue} currency={preview.currency} muted hideCurrency />
-                    </TableCell>
                     <TableCell className="py-1.5 text-right last:pr-4">
-                      <MoneyValue amount={item.totalDue} currency={preview.currency} hideCurrency />
+                      <MoneyValue amount={item.interestDue} currency={preview.currency} muted hideCurrency />
                     </TableCell>
                   </TableRow>
                 ))}
