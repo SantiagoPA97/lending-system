@@ -20,9 +20,17 @@ public static class AssistantTools
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static List<ToolUnion> Definitions() =>
-    [
-        new Tool
+    private sealed record RegisteredTool(
+        Tool Definition,
+        Func<IReadOnlyDictionary<string, JsonElement>, LendingDbContext, HybridCache, CancellationToken,
+            Task<(string Summary, string ResultJson)>> Handler);
+
+    // Each tool is declared exactly once: schema and handler together, keyed by
+    // the definition's own name, so the model-facing contract and the dispatch
+    // can never drift apart.
+    private static readonly Dictionary<string, RegisteredTool> Registry = new RegisteredTool[]
+    {
+        new(new Tool
         {
             Name = "search_facilities",
             Description =
@@ -42,8 +50,8 @@ public static class AssistantTools
                     ["minPercentRepaid"] = Prop("number", "Only activated facilities whose principal is at least this percent repaid (0-100).")
                 }
             }
-        },
-        new Tool
+        }, (input, db, _, ct) => SearchFacilitiesAsync(input, db, ct)),
+        new(new Tool
         {
             Name = "get_company",
             Description =
@@ -58,8 +66,8 @@ public static class AssistantTools
                     ["reference"] = Prop("string", "A facility reference such as FAC-00012 belonging to the company.")
                 }
             }
-        },
-        new Tool
+        }, (input, db, _, ct) => GetCompanyAsync(input, db, ct)),
+        new(new Tool
         {
             Name = "get_portfolio_summary",
             Description =
@@ -68,8 +76,8 @@ public static class AssistantTools
                 + "installments, and top company exposures per currency. Call this for any portfolio-level or "
                 + "exposure question.",
             InputSchema = new() { Properties = new Dictionary<string, JsonElement>() }
-        },
-        new Tool
+        }, (_, db, cache, ct) => GetPortfolioSummaryAsync(db, cache, ct)),
+        new(new Tool
         {
             Name = "get_upcoming_payments",
             Description =
@@ -83,24 +91,22 @@ public static class AssistantTools
                     ["days"] = Prop("integer", "Horizon in days from today (1-365). Defaults to 30.")
                 }
             }
-        }
-    ];
+        }, (input, db, _, ct) => GetUpcomingPaymentsAsync(input, db, ct)),
+    }.ToDictionary(t => t.Definition.Name, StringComparer.Ordinal);
 
-    public static async Task<(string Summary, string ResultJson)> ExecuteAsync(
+    public static List<ToolUnion> Definitions() =>
+        Registry.Values.Select(t => (ToolUnion)t.Definition).ToList();
+
+    public static Task<(string Summary, string ResultJson)> ExecuteAsync(
         string name,
         IReadOnlyDictionary<string, JsonElement> input,
         LendingDbContext db,
         HybridCache cache,
         CancellationToken ct)
     {
-        return name switch
-        {
-            "search_facilities" => await SearchFacilitiesAsync(input, db, ct),
-            "get_company" => await GetCompanyAsync(input, db, ct),
-            "get_portfolio_summary" => await GetPortfolioSummaryAsync(db, cache, ct),
-            "get_upcoming_payments" => await GetUpcomingPaymentsAsync(input, db, ct),
-            _ => ($"Unknown tool {name}", Serialize(new { error = $"Unknown tool '{name}'." }))
-        };
+        return Registry.TryGetValue(name, out var tool)
+            ? tool.Handler(input, db, cache, ct)
+            : Task.FromResult(($"Unknown tool {name}", Serialize(new { error = $"Unknown tool '{name}'." })));
     }
 
     private static async Task<(string, string)> SearchFacilitiesAsync(
