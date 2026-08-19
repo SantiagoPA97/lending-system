@@ -219,7 +219,7 @@ export function FacilityFormDialog({
         </p>
       </DialogHeader>
       <form onSubmit={onSubmit}>
-        <DialogBody className="grid gap-5 md:grid-cols-[minmax(0,1fr)_310px]">
+        <DialogBody className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
           <div className="space-y-4">
             {!facility && (
               <div>

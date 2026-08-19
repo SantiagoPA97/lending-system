@@ -15,7 +15,7 @@ export function SchedulePreviewPanel({
   preview: SchedulePreviewResponse | null
 }) {
   return (
-    <div className="flex h-full flex-col rounded-md border border-line bg-paper">
+    <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-md border border-line bg-paper">
       <div className="border-b border-line px-4 py-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted">Schedule preview</p>
       </div>
@@ -42,7 +42,7 @@ export function SchedulePreviewPanel({
       )}
       {state === 'ready' && preview && (
         <>
-          <div className="grid grid-cols-3 gap-3 border-b border-line px-4 py-3">
+          <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-line px-4 py-3">
             <PreviewStat
               label={preview.installments.length > 1 ? 'Monthly payment' : 'Payment at maturity'}
               amount={preview.installments[0]?.totalDue ?? 0}
@@ -51,7 +51,7 @@ export function SchedulePreviewPanel({
             <PreviewStat label="Total interest" amount={preview.totalInterest} currency={preview.currency} />
             <PreviewStat label="Total payable" amount={preview.totalPayable} currency={preview.currency} />
           </div>
-          <div className="max-h-64 flex-1 overflow-y-auto">
+          <div className="max-h-64 flex-1 overflow-auto">
             <Table className="text-[13px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -68,13 +68,13 @@ export function SchedulePreviewPanel({
                     <TableCell className="tabular py-1.5 text-muted first:pl-4">{item.period}</TableCell>
                     <TableCell className="whitespace-nowrap py-1.5">{formatDate(item.dueDate)}</TableCell>
                     <TableCell className="py-1.5 text-right">
-                      <MoneyValue amount={item.principalDue} currency={preview.currency} muted />
+                      <MoneyValue amount={item.principalDue} currency={preview.currency} muted hideCurrency />
                     </TableCell>
                     <TableCell className="py-1.5 text-right">
-                      <MoneyValue amount={item.interestDue} currency={preview.currency} muted />
+                      <MoneyValue amount={item.interestDue} currency={preview.currency} muted hideCurrency />
                     </TableCell>
                     <TableCell className="py-1.5 text-right last:pr-4">
-                      <MoneyValue amount={item.totalDue} currency={preview.currency} />
+                      <MoneyValue amount={item.totalDue} currency={preview.currency} hideCurrency />
                     </TableCell>
                   </TableRow>
                 ))}
