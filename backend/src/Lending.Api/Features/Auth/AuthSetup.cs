@@ -28,11 +28,22 @@ public static class AuthSetup
     public const string Auth0Scheme = "Auth0";
     public const string Auth0RoleClaim = "https://lending/roles";
 
-    public static string ResolveMode(IConfiguration configuration)
+    public static string ResolveMode(IConfiguration configuration, IHostEnvironment environment)
     {
         var mode = configuration["Auth:Mode"];
         if (string.IsNullOrWhiteSpace(mode) || mode.Equals(BypassMode, StringComparison.OrdinalIgnoreCase))
+        {
+            // Bypass hands out role sessions to anyone via /auth/dev-login, so a
+            // misconfigured production deploy must fail at startup, not run open.
+            if (environment.IsProduction() && !configuration.GetValue<bool>("Auth:AllowBypassInProduction"))
+                throw new InvalidOperationException(
+                    "Auth:Mode resolved to 'Bypass' in the Production environment. Bypass exposes " +
+                    "/auth/dev-login, which grants admin sessions to anonymous users. Set Auth__Mode=Auth0 " +
+                    "(with the Auth:Auth0 section configured), or explicitly opt in with " +
+                    "Auth__AllowBypassInProduction=true if this deployment is intentionally open (e.g. a demo).");
             return BypassMode;
+        }
+
         if (mode.Equals(Auth0Mode, StringComparison.OrdinalIgnoreCase))
             return Auth0Mode;
         throw new InvalidOperationException(

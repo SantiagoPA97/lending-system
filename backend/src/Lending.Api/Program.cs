@@ -46,7 +46,7 @@ try
     builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
     builder.Services.AddLendingInfrastructure(connectionString);
 
-    var authMode = AuthSetup.ResolveMode(builder.Configuration);
+    var authMode = AuthSetup.ResolveMode(builder.Configuration, builder.Environment);
     builder.AddLendingAuth(authMode);
 
     builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -139,7 +139,10 @@ try
         if (IsFlagSet("SEED_DEMO_DATA"))
         {
             Log.Information("Seeding demo data");
-            await DemoDataSeeder.SeedAsync(db);
+            var seedLogger = scope.ServiceProvider
+                .GetRequiredService<ILoggerFactory>()
+                .CreateLogger(nameof(DemoDataSeeder));
+            await DemoDataSeeder.SeedAsync(db, seedLogger);
         }
     }
 
