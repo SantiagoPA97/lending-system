@@ -58,12 +58,12 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser) : Save
             {
                 EntityState.Added => new AuditLog
                 {
-                    Action = "Created",
+                    Action = AuditAction.Created,
                     NewValues = Serialize(Snapshot(entry, original: false, onlyModified: false))
                 },
                 EntityState.Deleted => new AuditLog
                 {
-                    Action = "Deleted",
+                    Action = AuditAction.Deleted,
                     OldValues = Serialize(Snapshot(entry, original: true, onlyModified: false))
                 },
                 EntityState.Modified => BuildModifiedLog(entry),
@@ -91,7 +91,7 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser) : Save
             return null;
         return new AuditLog
         {
-            Action = "Updated",
+            Action = AuditAction.Updated,
             OldValues = Serialize(oldValues),
             NewValues = Serialize(Snapshot(entry, original: false, onlyModified: true))
         };

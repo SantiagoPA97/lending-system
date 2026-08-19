@@ -9,7 +9,7 @@ public static class AuditMapping
         log.Id,
         log.EntityType,
         log.EntityId,
-        log.Action,
+        log.Action.ToString(),
         log.UserName,
         log.TimestampUtc,
         ParseJson(log.OldValues),
