@@ -1,0 +1,9 @@
+**/bin
+**/obj
+**/node_modules
+frontend/dist
+.git
+.github
+.env*
+docker-compose.yml
+**/*.md

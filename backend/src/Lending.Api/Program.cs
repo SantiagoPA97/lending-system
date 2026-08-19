@@ -12,6 +12,7 @@ using Lending.Api.Features.Repayments;
 using Lending.Api.Features.Search;
 using Lending.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -76,6 +77,13 @@ try
 
     var app = builder.Build();
 
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor,
+        // Railway's edge proxy is not a known proxy to ASP.NET; trust it explicitly.
+        KnownNetworks = { },
+        KnownProxies = { },
+    });
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseMiddleware<ExceptionHandlingMiddleware>();

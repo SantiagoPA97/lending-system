@@ -42,12 +42,12 @@ jobs:
       - run: npm run build
 
   deploy:
-    if: false # enabled in deploy phase
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: npm install -g @railway/cli
-      - run: railway up --service lending-system --detach
+      - run: railway up --service app --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
