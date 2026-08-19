@@ -18,6 +18,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ApiError } from '@/lib/api'
+import { usePermissions } from '@/lib/auth'
 import { formatDate, percent, toDateInputValue } from '@/lib/format'
 import {
   useActivateFacility,
@@ -271,36 +272,50 @@ function FacilityActions({
   onRepay: () => void
   onAction: (action: PendingAction) => void
 }) {
+  const { canOperate, canAdmin } = usePermissions()
+
   if (facility.status === 'Draft') {
     return (
       <>
-        <Button variant="ghost" onClick={() => onAction('cancel')} className="text-danger hover:text-danger">
-          <Ban className="size-4" />
-          Cancel
-        </Button>
-        <Button variant="secondary" onClick={onEdit}>
-          <Pencil className="size-4" />
-          Edit terms
-        </Button>
-        <Button onClick={() => onAction('activate')}>Activate</Button>
+        {canAdmin && (
+          <Button variant="ghost" onClick={() => onAction('cancel')} className="text-danger hover:text-danger">
+            <Ban className="size-4" />
+            Cancel
+          </Button>
+        )}
+        {canOperate && (
+          <>
+            <Button variant="secondary" onClick={onEdit}>
+              <Pencil className="size-4" />
+              Edit terms
+            </Button>
+            <Button onClick={() => onAction('activate')}>Activate</Button>
+          </>
+        )}
       </>
     )
   }
   if (facility.status === 'Active') {
     return (
       <>
-        <Button variant="ghost" onClick={() => onAction('default')} className="text-danger hover:text-danger">
-          <TriangleAlert className="size-4" />
-          Mark defaulted
-        </Button>
-        <Button variant="ghost" onClick={() => onAction('cancel')} className="text-danger hover:text-danger">
-          <Ban className="size-4" />
-          Cancel
-        </Button>
-        <Button onClick={onRepay}>
-          <Plus className="size-4" />
-          Record repayment
-        </Button>
+        {canAdmin && (
+          <>
+            <Button variant="ghost" onClick={() => onAction('default')} className="text-danger hover:text-danger">
+              <TriangleAlert className="size-4" />
+              Mark defaulted
+            </Button>
+            <Button variant="ghost" onClick={() => onAction('cancel')} className="text-danger hover:text-danger">
+              <Ban className="size-4" />
+              Cancel
+            </Button>
+          </>
+        )}
+        {canOperate && (
+          <Button onClick={onRepay}>
+            <Plus className="size-4" />
+            Record repayment
+          </Button>
+        )}
       </>
     )
   }

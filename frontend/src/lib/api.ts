@@ -37,6 +37,13 @@ export function withQuery(path: string, params?: QueryParams): string {
   return qs ? `${path}?${qs}` : path
 }
 
+let unauthorizedHandler: (() => void) | null = null
+
+// Lets the auth layer react to session expiry detected by any API call.
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method,
@@ -48,6 +55,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
+
+  if (response.status === 401 && path.startsWith('/api')) unauthorizedHandler?.()
 
   if (!response.ok) {
     let problem: Record<string, unknown> = {}

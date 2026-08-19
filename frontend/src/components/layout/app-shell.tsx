@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Banknote, Building2, CircleUserRound, LayoutDashboard, Search } from 'lucide-react'
+import { Banknote, Building2, CircleUserRound, LayoutDashboard, Loader2, LogOut, Search } from 'lucide-react'
+import { useAuth, useLogout, usePermissions } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -40,6 +41,53 @@ function QuickSearch() {
   )
 }
 
+const roleLabels: Record<string, string> = {
+  viewer: 'Viewer',
+  operator: 'Operator',
+  admin: 'Admin',
+}
+
+function UserArea() {
+  const { data } = useAuth()
+  const { role, readOnly } = usePermissions()
+  const logout = useLogout()
+
+  if (!data?.authenticated) return null
+
+  return (
+    <div className="border-t border-white/10 px-5 py-4">
+      <div className="flex items-center gap-2.5">
+        <CircleUserRound className="size-6 shrink-0 text-white/40" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-medium text-white/90">{data.name}</p>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            {role && (
+              <span className="rounded-xs bg-white/10 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider text-accent-glow">
+                {roleLabels[role]}
+              </span>
+            )}
+            {readOnly && <span className="text-[10px] text-white/45">Read-only</span>}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          disabled={logout.isPending}
+          aria-label="Log out"
+          title="Log out"
+          className="rounded-sm p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          {logout.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <LogOut className="size-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function AppShell() {
   return (
     <div className="flex min-h-screen">
@@ -70,15 +118,7 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
-        <div className="border-t border-white/10 px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <CircleUserRound className="size-6 text-white/40" />
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-medium text-white/90">Operations user</p>
-              <p className="text-[11px] text-white/45">Sign-in coming soon</p>
-            </div>
-          </div>
-        </div>
+        <UserArea />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col pl-[228px]">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-line bg-surface/95 px-6 backdrop-blur">

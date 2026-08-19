@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table'
 import { StatusBadge } from '@/components/domain/status-badge'
 import { MoneyValue } from '@/components/domain/money-value'
+import { usePermissions } from '@/lib/auth'
 import { formatDate, percent } from '@/lib/format'
 import type { CompanyDetailResponse } from '@/types/api'
 
@@ -23,6 +24,7 @@ const repaymentTypeLabels: Record<string, string> = {
 
 export function CompanyFacilitiesCard({ company }: { company: CompanyDetailResponse }) {
   const navigate = useNavigate()
+  const { canOperate } = usePermissions()
   const inactive = company.status === 'Inactive'
   const facilities = company.facilities
 
@@ -36,14 +38,16 @@ export function CompanyFacilitiesCard({ company }: { company: CompanyDetailRespo
         {inactive ? (
           <p className="text-[13px] text-muted">Inactive companies can’t receive new facilities</p>
         ) : (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => navigate(`/facilities?new=1&companyId=${company.id}`)}
-          >
-            <Plus className="size-4" />
-            New facility
-          </Button>
+          canOperate && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => navigate(`/facilities?new=1&companyId=${company.id}`)}
+            >
+              <Plus className="size-4" />
+              New facility
+            </Button>
+          )
         )}
       </CardHeader>
       {facilities.length === 0 ? (
@@ -55,7 +59,7 @@ export function CompanyFacilitiesCard({ company }: { company: CompanyDetailRespo
               ? 'Reactivate the company to open its first facility.'
               : 'Open the first credit facility for this borrower.'}
           </p>
-          {!inactive && (
+          {!inactive && canOperate && (
             <Link
               to={`/facilities?new=1&companyId=${company.id}`}
               className="mt-1 text-sm font-medium text-accent hover:text-accent-hover"

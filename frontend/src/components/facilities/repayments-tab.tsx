@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { facilityErrorMessage } from '@/components/facilities/facility-errors'
+import { usePermissions } from '@/lib/auth'
 import { formatDate, money } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useRepayments, useReverseRepayment } from '@/lib/queries'
@@ -18,6 +19,7 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
   const { data, isLoading } = useRepayments(facility.id)
   const reverseRepayment = useReverseRepayment()
   const [reversing, setReversing] = useState<RepaymentResponse | null>(null)
+  const { canOperate, canAdmin } = usePermissions()
 
   const confirmReverse = async () => {
     if (!reversing) return
@@ -46,7 +48,7 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
       <Card>
         <p className="px-6 py-10 text-center text-sm text-muted">
           No repayments recorded yet.
-          {facility.status === 'Active' && ' Use “Record repayment” to post the first entry.'}
+          {facility.status === 'Active' && canOperate && ' Use “Record repayment” to post the first entry.'}
         </p>
       </Card>
     )
@@ -72,6 +74,7 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
               key={repayment.id}
               repayment={repayment}
               currency={facility.currency}
+              canReverse={canAdmin}
               onReverse={() => setReversing(repayment)}
             />
           ))}
@@ -108,10 +111,12 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
 function RepaymentRow({
   repayment,
   currency,
+  canReverse,
   onReverse,
 }: {
   repayment: RepaymentResponse
   currency: string
+  canReverse: boolean
   onReverse: () => void
 }) {
   const reversed = !!repayment.reversedByRepaymentId
@@ -147,7 +152,7 @@ function RepaymentRow({
         </span>
       </TableCell>
       <TableCell className="text-right">
-        {!repayment.isReversal && !reversed && (
+        {canReverse && !repayment.isReversal && !reversed && (
           <Button variant="ghost" size="sm" onClick={onReverse} className="text-danger hover:text-danger">
             <Undo2 className="size-4" />
             Reverse

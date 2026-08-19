@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Lending.Api.Common;
+using Lending.Api.Features.Auth;
 using Lending.Domain;
 using Lending.Domain.Entities;
 using Lending.Infrastructure;
@@ -14,10 +15,14 @@ public static class CompanyEndpoints
     {
         group.MapGet("/", GetList);
         group.MapGet("/{id:guid}", GetById);
-        group.MapPost("/", Create).WithValidation<CompanyRequest>();
-        group.MapPut("/{id:guid}", Update).WithValidation<CompanyRequest>();
-        group.MapPost("/{id:guid}/deactivate", Deactivate);
-        group.MapPost("/{id:guid}/activate", Activate);
+        group.MapPost("/", Create).WithValidation<CompanyRequest>()
+            .RequireAuthorization(AuthPolicies.Operator);
+        group.MapPut("/{id:guid}", Update).WithValidation<CompanyRequest>()
+            .RequireAuthorization(AuthPolicies.Operator);
+        group.MapPost("/{id:guid}/deactivate", Deactivate)
+            .RequireAuthorization(AuthPolicies.Admin);
+        group.MapPost("/{id:guid}/activate", Activate)
+            .RequireAuthorization(AuthPolicies.Operator);
         return group;
     }
 

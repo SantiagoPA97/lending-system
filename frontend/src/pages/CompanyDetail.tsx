@@ -12,6 +12,7 @@ import { apiErrorMessage } from '@/components/companies/company-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { usePermissions } from '@/lib/auth'
 import { useActivateCompany, useCompany, useDeactivateCompany } from '@/lib/queries'
 
 export default function CompanyDetail() {
@@ -20,6 +21,7 @@ export default function CompanyDetail() {
   const deactivate = useDeactivateCompany()
   const activate = useActivateCompany()
   const [confirming, setConfirming] = useState<'deactivate' | 'activate' | null>(null)
+  const { canOperate, canAdmin } = usePermissions()
 
   if (isLoading) {
     return (
@@ -90,17 +92,19 @@ export default function CompanyDetail() {
           </>
         }
         actions={
-          active ? (
-            <Button variant="secondary" onClick={() => setConfirming('deactivate')}>
-              <CircleSlash className="size-4" />
-              Deactivate
-            </Button>
-          ) : (
-            <Button onClick={() => setConfirming('activate')}>
-              <RotateCcw className="size-4" />
-              Reactivate
-            </Button>
-          )
+          active
+            ? canAdmin && (
+                <Button variant="secondary" onClick={() => setConfirming('deactivate')}>
+                  <CircleSlash className="size-4" />
+                  Deactivate
+                </Button>
+              )
+            : canOperate && (
+                <Button onClick={() => setConfirming('activate')}>
+                  <RotateCcw className="size-4" />
+                  Reactivate
+                </Button>
+              )
         }
       />
       <div className="grid items-start gap-4 lg:grid-cols-3">

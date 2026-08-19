@@ -9,6 +9,7 @@ import { FacilityFormDialog } from '@/components/facilities/facility-form-dialog
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
+import { usePermissions } from '@/lib/auth'
 import { formatDate } from '@/lib/format'
 import { useCompanies, useFacilities } from '@/lib/queries'
 import { CURRENCIES, FACILITY_STATUSES, REPAYMENT_TYPES, type FacilityResponse } from '@/types/api'
@@ -27,6 +28,7 @@ export default function Facilities() {
   const [currency, setCurrency] = useState('')
   const [companyId, setCompanyId] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const { canOperate } = usePermissions()
 
   const facilities = useFacilities({
     page,
@@ -95,10 +97,12 @@ export default function Facilities() {
         title="Facilities"
         description="Commitments, terms and outstanding balances across all borrowers."
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" />
-            New facility
-          </Button>
+          canOperate && (
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" />
+              New facility
+            </Button>
+          )
         }
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -180,12 +184,12 @@ export default function Facilities() {
               <Button variant="secondary" size="sm" onClick={clearFilters}>
                 Clear filters
               </Button>
-            ) : (
+            ) : canOperate ? (
               <Button size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus className="size-4" />
                 New facility
               </Button>
-            )
+            ) : undefined
           }
         />
       </Card>

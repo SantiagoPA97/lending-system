@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { usePermissions } from '@/lib/auth'
 import { formatDate } from '@/lib/format'
 import { useCompanies } from '@/lib/queries'
 import { COMPANY_STATUSES, type CompanyResponse } from '@/types/api'
@@ -52,6 +53,7 @@ export default function Companies() {
   const [nameInput, setNameInput] = useState('')
   const [nameQuery, setNameQuery] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const { canOperate } = usePermissions()
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -77,10 +79,12 @@ export default function Companies() {
         title="Companies"
         description="Every borrower on the book, with their standing and facilities."
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" />
-            New company
-          </Button>
+          canOperate && (
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" />
+              New company
+            </Button>
+          )
         }
       />
       <Card>
@@ -132,7 +136,7 @@ export default function Companies() {
               : 'Register the first borrower to start building the book.'
           }
           emptyAction={
-            filtered ? undefined : (
+            filtered || !canOperate ? undefined : (
               <Button variant="secondary" size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus className="size-4" />
                 New company

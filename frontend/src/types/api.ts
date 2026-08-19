@@ -261,3 +261,19 @@ export interface AuditLogResponse {
   oldValues: unknown
   newValues: unknown
 }
+
+export type AuthMode = 'Bypass' | 'Auth0'
+
+export type Role = 'viewer' | 'operator' | 'admin'
+
+export interface AuthMeResponse {
+  authenticated: boolean
+  name?: string | null
+  email?: string | null
+  roles?: Role[]
+  mode: AuthMode
+}
+
+export interface LogoutResponse {
+  logoutUrl: string | null
+}

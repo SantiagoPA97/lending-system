@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Lending.Api.Common;
+using Lending.Api.Features.Auth;
 using Lending.Api.Features.Repayments;
 using Lending.Domain;
 using Lending.Domain.Entities;
@@ -15,14 +16,21 @@ public static class FacilityEndpoints
     {
         group.MapGet("/", GetList);
         group.MapGet("/{id:guid}", GetById);
-        group.MapPost("/", Create).WithValidation<CreateFacilityRequest>();
-        group.MapPut("/{id:guid}", Update).WithValidation<UpdateFacilityRequest>();
-        group.MapPost("/{id:guid}/activate", Activate);
-        group.MapPost("/{id:guid}/cancel", Cancel);
-        group.MapPost("/{id:guid}/default", MarkDefaulted);
+        group.MapPost("/", Create).WithValidation<CreateFacilityRequest>()
+            .RequireAuthorization(AuthPolicies.Operator);
+        group.MapPut("/{id:guid}", Update).WithValidation<UpdateFacilityRequest>()
+            .RequireAuthorization(AuthPolicies.Operator);
+        group.MapPost("/{id:guid}/activate", Activate)
+            .RequireAuthorization(AuthPolicies.Operator);
+        group.MapPost("/{id:guid}/cancel", Cancel)
+            .RequireAuthorization(AuthPolicies.Admin);
+        group.MapPost("/{id:guid}/default", MarkDefaulted)
+            .RequireAuthorization(AuthPolicies.Admin);
         group.MapGet("/{id:guid}/schedule", GetSchedule);
+        // Schedule preview is a projection (read-only) despite being a POST, so viewer access is fine.
         group.MapPost("/schedule-preview", SchedulePreview).WithValidation<SchedulePreviewRequest>();
-        group.MapPost("/{id:guid}/repayments", RecordRepayment).WithValidation<RecordRepaymentRequest>();
+        group.MapPost("/{id:guid}/repayments", RecordRepayment).WithValidation<RecordRepaymentRequest>()
+            .RequireAuthorization(AuthPolicies.Operator);
         group.MapGet("/{id:guid}/repayments", GetRepayments);
         return group;
     }

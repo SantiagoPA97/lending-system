@@ -1,4 +1,5 @@
 using Lending.Api.Common;
+using Lending.Api.Features.Auth;
 using Lending.Domain.Entities;
 using Lending.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,8 @@ public static class RepaymentEndpoints
 {
     public static RouteGroupBuilder MapRepaymentEndpoints(this RouteGroupBuilder group)
     {
-        // TODO(auth): restrict reversals to the admin role once Auth0 policies are wired.
-        group.MapPost("/{id:guid}/reverse", Reverse);
+        group.MapPost("/{id:guid}/reverse", Reverse)
+            .RequireAuthorization(AuthPolicies.Admin);
         return group;
     }
 

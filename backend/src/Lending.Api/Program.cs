@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Lending.Api.Common;
 using Lending.Api.Features.Audit;
+using Lending.Api.Features.Auth;
 using Lending.Api.Features.Companies;
 using Lending.Api.Features.Dashboard;
 using Lending.Api.Features.Facilities;
@@ -43,6 +44,9 @@ try
     builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
     builder.Services.AddLendingInfrastructure(connectionString);
 
+    var authMode = AuthSetup.ResolveMode(builder.Configuration);
+    builder.AddLendingAuth(authMode);
+
     builder.Services.AddValidatorsFromAssemblyContaining<Program>();
     builder.Services.AddHybridCache();
     builder.Services.ConfigureHttpJsonOptions(options =>
@@ -74,6 +78,9 @@ try
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
+    app.UseMiddleware<CsrfProtectionMiddleware>();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     if (app.Environment.IsDevelopment())
     {
@@ -89,7 +96,11 @@ try
         app.UseStaticFiles();
     }
 
-    var api = app.MapGroup("/api");
+    app.MapGroup("/auth").MapAuthEndpoints(authMode).WithTags("Auth");
+
+    // Every /api endpoint requires at least the viewer role; feature files
+    // tighten specific routes to operator/admin.
+    var api = app.MapGroup("/api").RequireAuthorization(AuthPolicies.Viewer);
     api.MapGroup("/companies").MapCompanyEndpoints().WithTags("Companies");
     api.MapGroup("/facilities").MapFacilityEndpoints().WithTags("Facilities");
     api.MapGroup("/repayments").MapRepaymentEndpoints().WithTags("Repayments");
