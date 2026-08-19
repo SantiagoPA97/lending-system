@@ -30,6 +30,8 @@ public static class DomainErrors
         public const string NotFound = "repayment.not_found";
         public const string AlreadyReversed = "repayment.already_reversed";
         public const string CannotReverseReversal = "repayment.cannot_reverse_reversal";
+        public const string FacilityClosed = "repayment.facility_closed";
+        public const string BeforeStart = "repayment.before_start";
     }
 
     public static class Money

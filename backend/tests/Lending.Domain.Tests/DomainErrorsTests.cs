@@ -14,5 +14,7 @@ public class DomainErrorsTests
         Assert.Equal("money.currency_mismatch", DomainErrors.Money.CurrencyMismatch);
         Assert.Equal("company.inactive", DomainErrors.Company.Inactive);
         Assert.Equal("schedule.invalid_terms", DomainErrors.Schedule.InvalidTerms);
+        Assert.Equal("repayment.facility_closed", DomainErrors.Repayment.FacilityClosed);
+        Assert.Equal("repayment.before_start", DomainErrors.Repayment.BeforeStart);
     }
 }

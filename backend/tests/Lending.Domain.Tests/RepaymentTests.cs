@@ -124,6 +124,44 @@ public class RepaymentTests
         Assert.Equal(3_300.22m, facility.Schedule[0].PrincipalPaid);
         Assert.Equal(3_333.22m, facility.Schedule[1].PrincipalPaid);
         Assert.Equal(3_366.56m, facility.Schedule[2].PrincipalPaid);
+        // Early settlement waives all remaining interest — nothing left "due".
+        Assert.All(facility.Schedule, i => Assert.True(i.IsSettled));
+        Assert.Equal(0m, facility.Schedule.Sum(i => i.InterestPaid));
+        Assert.Equal(200.67m, facility.Schedule.Sum(i => i.InterestWaived));
+    }
+
+    [Fact]
+    public void EarlyPayoff_Amortizing_WaivesFutureInterest_AndSettlesAllInstallments()
+    {
+        var facility = TestData.ActiveFacility();
+        facility.RecordRepayment(Usd(3_400.22m), TestData.Start.AddMonths(1)); // P1 in full
+        facility.RecordRepayment(Usd(6_699.78m), TestData.Start.AddMonths(1).AddDays(5));
+
+        Assert.Equal(0m, facility.OutstandingPrincipal);
+        Assert.Equal(FacilityStatus.Completed, facility.Status);
+        Assert.All(facility.Schedule, i => Assert.True(i.IsSettled));
+        // Only P1 interest was actually received; P2/P3 interest is waived, not paid.
+        Assert.Equal(100m, facility.Schedule.Sum(i => i.InterestPaid));
+        Assert.Equal(0m, facility.Schedule[0].InterestWaived);
+        Assert.Equal(67m, facility.Schedule[1].InterestWaived);
+        Assert.Equal(33.67m, facility.Schedule[2].InterestWaived);
+    }
+
+    [Fact]
+    public void EarlyPayoff_InterestOnly_WaivesFutureInterest_AndSettlesAllInstallments()
+    {
+        var facility = TestData.ActiveFacility(
+            commitment: 100_000m, rate: 7.35m, termMonths: 13, type: RepaymentType.InterestOnly);
+
+        facility.RecordRepayment(Usd(612.50m), TestData.Start.AddMonths(1));
+        facility.RecordRepayment(Usd(100_612.50m), TestData.Start.AddMonths(2));
+
+        Assert.Equal(0m, facility.OutstandingPrincipal);
+        Assert.Equal(FacilityStatus.Completed, facility.Status);
+        Assert.All(facility.Schedule, i => Assert.True(i.IsSettled));
+        // Two months of interest received; the remaining 11 periods are waived.
+        Assert.Equal(1_225m, facility.Schedule.Sum(i => i.InterestPaid));
+        Assert.Equal(11 * 612.50m, facility.Schedule.Sum(i => i.InterestWaived));
     }
 
     [Fact]
@@ -161,6 +199,24 @@ public class RepaymentTests
         Assert.Equal(0m, first.PrincipalApplied);
         Assert.Equal(100_000m, facility.OutstandingPrincipal);
         Assert.True(facility.Schedule[0].IsSettled);
+    }
+
+    [Fact]
+    public void RecordRepayment_BeforeStartDate_Throws()
+    {
+        var facility = TestData.ActiveFacility();
+        var ex = Assert.Throws<DomainException>(
+            () => facility.RecordRepayment(Usd(100m), TestData.Start.AddDays(-1)));
+        Assert.Equal(DomainErrors.Repayment.BeforeStart, ex.ErrorCode);
+        Assert.Equal(10_000m, facility.OutstandingPrincipal);
+    }
+
+    [Fact]
+    public void RecordRepayment_OnStartDate_Succeeds()
+    {
+        var facility = TestData.ActiveFacility();
+        var repayment = facility.RecordRepayment(Usd(100m), TestData.Start);
+        Assert.Equal(100m, repayment.PrincipalApplied);
     }
 
     [Fact]

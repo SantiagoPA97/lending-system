@@ -105,6 +105,10 @@ public class Facility
     {
         if (Status != FacilityStatus.Active)
             throw new DomainException(DomainErrors.Facility.NotActive, "Repayments can only be recorded on active facilities.");
+        if (paymentDate < StartDate)
+            throw new DomainException(
+                DomainErrors.Repayment.BeforeStart,
+                $"Repayment date {paymentDate:yyyy-MM-dd} is before the facility start date {StartDate:yyyy-MM-dd}.");
         note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
         if (note?.Length > 500)
             throw new DomainException(DomainErrors.Repayment.NoteTooLong, "Repayment note must be at most 500 characters.");
@@ -176,19 +180,38 @@ public class Facility
         _repayments.Add(repayment);
 
         if (OutstandingPrincipal == 0m)
+        {
             Status = FacilityStatus.Completed;
+            // Early full settlement waives whatever future interest is still unpaid.
+            WaiveRemainingInterest();
+        }
+
         Touch();
         return repayment;
     }
 
     public Repayment ReverseRepayment(Guid repaymentId, DateOnly reversalDate)
     {
+        if (Status is not (FacilityStatus.Active or FacilityStatus.Completed))
+            throw new DomainException(
+                DomainErrors.Repayment.FacilityClosed,
+                $"Repayments cannot be reversed on a facility in status {Status}.");
+
         var original = _repayments.FirstOrDefault(r => r.Id == repaymentId)
             ?? throw new DomainException(DomainErrors.Repayment.NotFound, $"Repayment {repaymentId} was not found on this facility.");
         if (original.IsReversal)
             throw new DomainException(DomainErrors.Repayment.CannotReverseReversal, "A reversal entry cannot be reversed.");
         if (original.ReversedByRepaymentId is not null)
             throw new DomainException(DomainErrors.Repayment.AlreadyReversed, "This repayment has already been reversed.");
+
+        // Settlement waivers only exist on completed facilities; lift them so the
+        // reversal restores the exact pre-settlement installment state.
+        var wasCompleted = Status == FacilityStatus.Completed;
+        if (wasCompleted)
+        {
+            foreach (var item in _schedule)
+                item.ClearInterestWaiver();
+        }
 
         foreach (var allocation in original.Allocations)
         {
@@ -211,10 +234,23 @@ public class Facility
         _repayments.Add(reversal);
         original.ReversedByRepaymentId = reversal.Id;
 
-        if (Status == FacilityStatus.Completed && OutstandingPrincipal > 0m)
-            Status = FacilityStatus.Active;
+        if (wasCompleted)
+        {
+            if (OutstandingPrincipal > 0m)
+                Status = FacilityStatus.Active;
+            else
+                // Principal is still fully settled, so remaining interest stays waived.
+                WaiveRemainingInterest();
+        }
+
         Touch();
         return reversal;
+    }
+
+    private void WaiveRemainingInterest()
+    {
+        foreach (var item in _schedule.Where(i => i.InterestOutstanding > 0m))
+            item.WaiveRemainingInterest();
     }
 
     private void SetTerms(

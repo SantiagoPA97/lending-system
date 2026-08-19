@@ -14,6 +14,7 @@ public sealed class RepaymentScheduleItemConfiguration : IEntityTypeConfiguratio
         builder.Property(i => i.RemainingBalance).HasColumnType("numeric(18,2)");
         builder.Property(i => i.PrincipalPaid).HasColumnType("numeric(18,2)");
         builder.Property(i => i.InterestPaid).HasColumnType("numeric(18,2)");
+        builder.Property(i => i.InterestWaived).HasColumnType("numeric(18,2)");
 
         builder.HasIndex(i => new { i.FacilityId, i.Period }).IsUnique();
         builder.HasIndex(i => i.DueDate);

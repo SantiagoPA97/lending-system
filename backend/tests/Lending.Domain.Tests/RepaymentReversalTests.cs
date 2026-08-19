@@ -58,6 +58,67 @@ public class RepaymentReversalTests
     }
 
     [Fact]
+    public void Reversal_OfEarlySettlement_RestoresWaivedInterest()
+    {
+        var facility = TestData.ActiveFacility();
+        var settlement = facility.RecordRepayment(Usd(10_000m), TestData.Start.AddDays(1));
+        Assert.True(facility.Schedule.Sum(i => i.InterestWaived) > 0m);
+
+        facility.ReverseRepayment(settlement.Id, ReversalDate);
+
+        Assert.Equal(FacilityStatus.Active, facility.Status);
+        Assert.All(facility.Schedule, i =>
+        {
+            Assert.Equal(0m, i.InterestWaived);
+            Assert.Equal(0m, i.InterestPaid);
+            Assert.Equal(0m, i.PrincipalPaid);
+            Assert.False(i.IsSettled);
+        });
+        Assert.Equal(100m, facility.Schedule[0].InterestOutstanding);
+    }
+
+    [Fact]
+    public void Reversal_OfInterestPayment_OnSettledFacility_ReWaivesRemainingInterest()
+    {
+        var facility = TestData.ActiveFacility();
+        var interestPayment = facility.RecordRepayment(Usd(100m), TestData.Start.AddMonths(1)); // P1 interest
+        facility.RecordRepayment(Usd(10_000m), TestData.Start.AddMonths(1)); // full payoff
+        Assert.Equal(FacilityStatus.Completed, facility.Status);
+
+        facility.ReverseRepayment(interestPayment.Id, ReversalDate);
+
+        // Principal is still fully settled, so the facility stays completed and the
+        // clawed-back interest joins the waived remainder — nothing left "due".
+        Assert.Equal(FacilityStatus.Completed, facility.Status);
+        Assert.Equal(0m, facility.OutstandingPrincipal);
+        Assert.All(facility.Schedule, i => Assert.True(i.IsSettled));
+        Assert.Equal(0m, facility.Schedule[0].InterestPaid);
+        Assert.Equal(100m, facility.Schedule[0].InterestWaived);
+    }
+
+    [Theory]
+    [InlineData(FacilityStatus.Cancelled)]
+    [InlineData(FacilityStatus.Defaulted)]
+    public void Reversal_OnClosedFacility_Throws(FacilityStatus status)
+    {
+        var facility = TestData.ActiveFacility();
+        var original = facility.RecordRepayment(Usd(500m), TestData.Start.AddMonths(1));
+        if (status == FacilityStatus.Cancelled)
+            facility.Cancel();
+        else
+            facility.MarkDefaulted();
+
+        var ex = Assert.Throws<DomainException>(
+            () => facility.ReverseRepayment(original.Id, ReversalDate));
+        Assert.Equal(DomainErrors.Repayment.FacilityClosed, ex.ErrorCode);
+        // Nothing was restored: the ledger and outstanding are untouched.
+        Assert.Equal(9_600m, facility.OutstandingPrincipal);
+        Assert.Equal(100m, facility.Schedule[0].InterestPaid);
+        Assert.Equal(400m, facility.Schedule[0].PrincipalPaid);
+        Assert.Null(original.ReversedByRepaymentId);
+    }
+
+    [Fact]
     public void Reversal_ThenRepayingAgain_WorksAsIfNeverPaid()
     {
         var facility = TestData.ActiveFacility();

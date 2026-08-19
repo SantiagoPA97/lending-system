@@ -34,6 +34,7 @@ public class Company
     public string Industry { get; private set; } = string.Empty;
     public string ContactEmail { get; private set; } = string.Empty;
     public CompanyStatus Status { get; private set; }
+    public uint Xmin { get; set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime UpdatedAtUtc { get; private set; }
 

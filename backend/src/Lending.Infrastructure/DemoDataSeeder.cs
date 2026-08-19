@@ -1,12 +1,17 @@
 using Lending.Domain;
 using Lending.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Lending.Infrastructure;
 
 public static class DemoDataSeeder
 {
-    public static async Task SeedAsync(LendingDbContext db, CancellationToken cancellationToken = default)
+    public static async Task SeedAsync(
+        LendingDbContext db,
+        ILogger? logger = null,
+        CancellationToken cancellationToken = default)
     {
         if (await db.Companies.AnyAsync(cancellationToken))
             return;
@@ -89,7 +94,16 @@ public static class DemoDataSeeder
 
         db.Companies.AddRange(companies);
         db.Facilities.AddRange(facilities);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            // Another replica won the check-then-act race and seeded first; skip.
+            logger?.LogInformation("Demo data already seeded by a concurrent instance; skipping.");
+        }
     }
 
     private static void PayInstallments(Facility facility, int count)

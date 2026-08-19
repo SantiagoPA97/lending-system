@@ -67,6 +67,10 @@ public sealed class ScheduleCalculator : IScheduleCalculator
     private static List<SchedulePeriod> InterestOnly(ScheduleTerms terms, decimal monthlyRate)
     {
         var periodInterest = MoneyMath.Round(terms.Principal * monthlyRate);
+        // Final period absorbs cumulative rounding so total interest matches the
+        // full-term figure exactly (same technique as Amortizing principal).
+        var totalInterest = MoneyMath.Round(terms.Principal * monthlyRate * terms.TermMonths);
+        var finalInterest = totalInterest - periodInterest * (terms.TermMonths - 1);
         var schedule = new List<SchedulePeriod>(terms.TermMonths);
         for (var period = 1; period <= terms.TermMonths; period++)
         {
@@ -75,7 +79,7 @@ public sealed class ScheduleCalculator : IScheduleCalculator
                 period,
                 terms.StartDate.AddMonths(period),
                 isLast ? terms.Principal : 0m,
-                periodInterest,
+                isLast ? finalInterest : periodInterest,
                 isLast ? 0m : terms.Principal));
         }
 

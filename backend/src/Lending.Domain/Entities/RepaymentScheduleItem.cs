@@ -26,14 +26,19 @@ public class RepaymentScheduleItem
     public decimal RemainingBalance { get; private set; }
     public decimal PrincipalPaid { get; private set; }
     public decimal InterestPaid { get; private set; }
+    public decimal InterestWaived { get; private set; }
 
     public decimal PrincipalOutstanding => PrincipalDue - PrincipalPaid;
-    public decimal InterestOutstanding => InterestDue - InterestPaid;
+    public decimal InterestOutstanding => InterestDue - InterestPaid - InterestWaived;
     public bool IsSettled => PrincipalOutstanding == 0m && InterestOutstanding == 0m;
 
     internal void ApplyInterest(decimal amount) => InterestPaid += amount;
 
     internal void ApplyPrincipal(decimal amount) => PrincipalPaid += amount;
+
+    internal void WaiveRemainingInterest() => InterestWaived = InterestDue - InterestPaid;
+
+    internal void ClearInterestWaiver() => InterestWaived = 0m;
 
     internal void Revert(decimal interest, decimal principal)
     {

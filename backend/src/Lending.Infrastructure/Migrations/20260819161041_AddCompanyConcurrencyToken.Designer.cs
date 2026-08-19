@@ -3,6 +3,7 @@ using System;
 using Lending.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using NpgsqlTypes;
 namespace Lending.Infrastructure.Migrations
 {
     [DbContext(typeof(LendingDbContext))]
-    partial class LendingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260819161041_AddCompanyConcurrencyToken")]
+    partial class AddCompanyConcurrencyToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -368,10 +371,6 @@ namespace Lending.Infrastructure.Migrations
                     b.Property<decimal>("InterestPaid")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("interest_paid");
-
-                    b.Property<decimal>("InterestWaived")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("interest_waived");
 
                     b.Property<int>("Period")
                         .HasColumnType("integer")

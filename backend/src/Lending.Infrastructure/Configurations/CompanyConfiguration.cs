@@ -18,6 +18,7 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.Property(c => c.Industry).HasMaxLength(100).IsRequired();
         builder.Property(c => c.ContactEmail).HasMaxLength(320).IsRequired();
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(20);
+        builder.Property(c => c.Xmin).IsRowVersion();
 
         builder.HasIndex(c => c.Name).IsUnique();
         builder.HasIndex(c => c.Name, "ix_companies_name_trgm")

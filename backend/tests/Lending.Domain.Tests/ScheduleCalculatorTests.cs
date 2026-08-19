@@ -144,19 +144,30 @@ public class ScheduleCalculatorTests
         Assert.Equal(0m, schedule[^1].RemainingBalance);
     }
 
-    [Fact]
-    public void BulletAndInterestOnly_TotalInterestDiffersOnlyByPerPeriodRounding()
+    [Theory]
+    [MemberData(nameof(TermCases))]
+    public void InterestOnly_TotalInterest_EqualsBullet_ForIdenticalTerms(
+        decimal principal, decimal rate, int term)
     {
-        var terms = (Principal: 50_000m, Rate: 9.25m, Term: 18);
         var bullet = ScheduleCalculator.Calculate(
-            new ScheduleTerms(terms.Principal, terms.Rate, terms.Term, Start, RepaymentType.Bullet));
+            new ScheduleTerms(principal, rate, term, Start, RepaymentType.Bullet));
         var interestOnly = ScheduleCalculator.Calculate(
-            new ScheduleTerms(terms.Principal, terms.Rate, terms.Term, Start, RepaymentType.InterestOnly));
+            new ScheduleTerms(principal, rate, term, Start, RepaymentType.InterestOnly));
 
-        // Bullet rounds interest once at maturity; InterestOnly rounds each period —
-        // totals may differ by at most half a cent per period.
-        var difference = Math.Abs(bullet.Sum(p => p.InterestDue) - interestOnly.Sum(p => p.InterestDue));
-        Assert.True(difference <= 0.005m * terms.Term, $"Difference {difference} exceeds rounding tolerance.");
+        // The final InterestOnly period reconciles per-period rounding, so both
+        // types charge exactly the full-term simple interest.
+        Assert.Equal(bullet.Sum(p => p.InterestDue), interestOnly.Sum(p => p.InterestDue));
+    }
+
+    [Fact]
+    public void InterestOnly_FinalPeriodAbsorbsInterestRounding()
+    {
+        var schedule = ScheduleCalculator.Calculate(
+            new ScheduleTerms(12_345.67m, 9.87m, 11, Start, RepaymentType.InterestOnly));
+
+        Assert.All(schedule.Take(10), p => Assert.Equal(101.54m, p.InterestDue));
+        Assert.Equal(101.57m, schedule[^1].InterestDue);
+        Assert.Equal(1_116.97m, schedule.Sum(p => p.InterestDue)); // round(12,345.67 * 9.87%/12 * 11)
     }
 
     [Theory]
