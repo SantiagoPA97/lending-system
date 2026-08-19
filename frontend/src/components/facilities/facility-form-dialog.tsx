@@ -87,6 +87,8 @@ export function FacilityFormDialog({
     handleSubmit,
     watch,
     setError,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,6 +112,17 @@ export function FacilityFormDialog({
           repaymentType: 'Amortizing',
         },
   })
+
+  // The company select is uncontrolled, so a preselected companyId set before
+  // the options query resolves is dropped by the browser (no matching option
+  // yet). Re-apply it once when the active-company list arrives.
+  const appliedInitialCompany = useRef(false)
+  useEffect(() => {
+    if (facility || !initialCompanyId || appliedInitialCompany.current) return
+    if (!activeCompanies.data?.items.some((c) => c.id === initialCompanyId)) return
+    appliedInitialCompany.current = true
+    if (!getValues('companyId')) setValue('companyId', initialCompanyId)
+  }, [activeCompanies.data, facility, initialCompanyId, getValues, setValue])
 
   const [preview, setPreview] = useState<SchedulePreviewResponse | null>(null)
   const [previewState, setPreviewState] = useState<PreviewState>('idle')
