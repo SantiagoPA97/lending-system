@@ -16,13 +16,13 @@ public static class CompanyEndpoints
         group.MapGet("/", GetList);
         group.MapGet("/{id:guid}", GetById);
         group.MapPost("/", Create).WithValidation<CompanyRequest>()
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.ManagePortfolio);
         group.MapPut("/{id:guid}", Update).WithValidation<CompanyRequest>()
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.ManagePortfolio);
         group.MapPost("/{id:guid}/deactivate", Deactivate)
-            .RequireAuthorization(AuthPolicies.Admin);
+            .RequireAuthorization(Permissions.CloseFacilities);
         group.MapPost("/{id:guid}/activate", Activate)
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.ManagePortfolio);
         return group;
     }
 

@@ -71,6 +71,7 @@ public static class AuthEndpoints
                 user.Identity.Name,
                 user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email"),
                 roles,
+                RolePermissions.For(roles).Order(StringComparer.Ordinal).ToList(),
                 mode));
         });
 

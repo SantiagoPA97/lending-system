@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,13 +13,6 @@ public static class AuthRoles
     public const string Operator = "operator";
     public const string Admin = "admin";
     public static readonly string[] All = [Viewer, Operator, Admin];
-}
-
-public static class AuthPolicies
-{
-    public const string Viewer = "Viewer";
-    public const string Operator = "Operator";
-    public const string Admin = "Admin";
 }
 
 public static class AuthSetup
@@ -59,15 +53,12 @@ public static class AuthSetup
         if (mode == Auth0Mode)
             auth.AddOpenIdConnect(Auth0Scheme, options => ConfigureAuth0(options, builder.Configuration));
 
-        // Role hierarchy admin ⊃ operator ⊃ viewer, expressed as widening role sets.
+        // One policy per permission; roles grant permissions via RolePermissions.
+        builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy(AuthPolicies.Viewer,
-                p => p.RequireRole(AuthRoles.Viewer, AuthRoles.Operator, AuthRoles.Admin));
-            options.AddPolicy(AuthPolicies.Operator,
-                p => p.RequireRole(AuthRoles.Operator, AuthRoles.Admin));
-            options.AddPolicy(AuthPolicies.Admin,
-                p => p.RequireRole(AuthRoles.Admin));
+            foreach (var permission in Permissions.All)
+                options.AddPolicy(permission, p => p.AddRequirements(new PermissionRequirement(permission)));
         });
     }
 

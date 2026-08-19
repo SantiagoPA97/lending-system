@@ -293,6 +293,7 @@ export interface AuthMeResponse {
   name?: string | null
   email?: string | null
   roles?: Role[]
+  permissions?: string[]
   mode: AuthMode
 }
 

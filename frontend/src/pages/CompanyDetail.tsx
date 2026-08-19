@@ -22,7 +22,7 @@ export default function CompanyDetail() {
   const deactivate = useDeactivateCompany()
   const activate = useActivateCompany()
   const [confirming, setConfirming] = useState<'deactivate' | 'activate' | null>(null)
-  const { canOperate, canAdmin } = usePermissions()
+  const { canManagePortfolio, canCloseFacilities } = usePermissions()
 
   if (isLoading) {
     return (
@@ -104,13 +104,13 @@ export default function CompanyDetail() {
         }
         actions={
           active
-            ? canAdmin && (
+            ? canCloseFacilities && (
                 <Button variant="secondary" onClick={() => setConfirming('deactivate')}>
                   <CircleSlash className="size-4" />
                   Deactivate
                 </Button>
               )
-            : canOperate && (
+            : canManagePortfolio && (
                 <Button onClick={() => setConfirming('activate')}>
                   <RotateCcw className="size-4" />
                   Reactivate

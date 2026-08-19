@@ -267,18 +267,18 @@ function FacilityActions({
   onRepay: () => void
   onAction: (action: PendingAction) => void
 }) {
-  const { canOperate, canAdmin } = usePermissions()
+  const { canManagePortfolio, canRecordRepayments, canCloseFacilities } = usePermissions()
 
   if (facility.status === 'Draft') {
     return (
       <>
-        {canAdmin && (
+        {canCloseFacilities && (
           <Button variant="ghost" onClick={() => onAction('cancel')} className="text-danger hover:text-danger">
             <Ban className="size-4" />
             Cancel
           </Button>
         )}
-        {canOperate && (
+        {canManagePortfolio && (
           <>
             <Button variant="secondary" onClick={onEdit}>
               <Pencil className="size-4" />
@@ -293,7 +293,7 @@ function FacilityActions({
   if (facility.status === 'Active') {
     return (
       <>
-        {canAdmin && (
+        {canCloseFacilities && (
           <>
             <Button variant="ghost" onClick={() => onAction('default')} className="text-danger hover:text-danger">
               <TriangleAlert className="size-4" />
@@ -305,7 +305,7 @@ function FacilityActions({
             </Button>
           </>
         )}
-        {canOperate && (
+        {canRecordRepayments && (
           <Button onClick={onRepay}>
             <Plus className="size-4" />
             Record repayment

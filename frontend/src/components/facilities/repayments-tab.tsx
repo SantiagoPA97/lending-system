@@ -19,7 +19,7 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
   const { data, isLoading } = useRepayments(facility.id)
   const reverseRepayment = useReverseRepayment()
   const [reversing, setReversing] = useState<RepaymentResponse | null>(null)
-  const { canOperate, canAdmin } = usePermissions()
+  const { canRecordRepayments, canReverseRepayments } = usePermissions()
 
   const confirmReverse = async () => {
     if (!reversing) return
@@ -48,7 +48,7 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
       <Card>
         <p className="px-6 py-10 text-center text-sm text-muted">
           No repayments recorded yet.
-          {facility.status === 'Active' && canOperate && ' Use “Record repayment” to post the first entry.'}
+          {facility.status === 'Active' && canRecordRepayments && ' Use “Record repayment” to post the first entry.'}
         </p>
       </Card>
     )
@@ -74,7 +74,7 @@ export function RepaymentsTab({ facility }: { facility: FacilityDetailResponse }
               key={repayment.id}
               repayment={repayment}
               currency={facility.currency}
-              canReverse={canAdmin}
+              canReverse={canReverseRepayments}
               onReverse={() => setReversing(repayment)}
             />
           ))}

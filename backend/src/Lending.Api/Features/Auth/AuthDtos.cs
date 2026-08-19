@@ -5,6 +5,7 @@ public sealed record AuthUserResponse(
     string? Name,
     string? Email,
     IReadOnlyList<string> Roles,
+    IReadOnlyList<string> Permissions,
     string Mode);
 
 public sealed record AnonymousAuthResponse(bool Authenticated, string Mode);

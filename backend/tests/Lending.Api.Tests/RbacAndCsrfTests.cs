@@ -51,6 +51,27 @@ public class RbacAndCsrfTests(PostgresFixture fixture)
     }
 
     [Fact]
+    public async Task Operator_CanReactivateCompany_ButCannotDeactivate()
+    {
+        var operatorClient = await fixture.CreateClientAsync("operator");
+        var adminClient = await fixture.CreateClientAsync("admin");
+
+        var company = await Api.CreateCompanyAsync(operatorClient, "Reactivation Logistics");
+
+        var deniedDeactivate = await operatorClient.PostAsJsonAsync(
+            $"/api/companies/{company.Id}/deactivate", new { }, Api.Json);
+        await deniedDeactivate.ReadProblemAsync(403);
+
+        var deactivate = await adminClient.PostAsJsonAsync(
+            $"/api/companies/{company.Id}/deactivate", new { }, Api.Json);
+        Assert.Equal(HttpStatusCode.OK, deactivate.StatusCode);
+
+        var reactivate = await operatorClient.PostAsJsonAsync(
+            $"/api/companies/{company.Id}/activate", new { }, Api.Json);
+        Assert.Equal(HttpStatusCode.OK, reactivate.StatusCode);
+    }
+
+    [Fact]
     public async Task Admin_ReversingRepayment_RestoresBalances()
     {
         var operatorClient = await fixture.CreateClientAsync("operator");

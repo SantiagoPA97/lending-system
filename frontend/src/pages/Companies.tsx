@@ -53,7 +53,7 @@ export default function Companies() {
   const [nameInput, setNameInput] = useState('')
   const [nameQuery, setNameQuery] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
-  const { canOperate } = usePermissions()
+  const { canManagePortfolio } = usePermissions()
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -79,7 +79,7 @@ export default function Companies() {
         title="Companies"
         description="Every borrower on the book, with their standing and facilities."
         actions={
-          canOperate && (
+          canManagePortfolio && (
             <Button onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" />
               New company
@@ -136,7 +136,7 @@ export default function Companies() {
               : 'Register the first borrower to start building the book.'
           }
           emptyAction={
-            filtered || !canOperate ? undefined : (
+            filtered || !canManagePortfolio ? undefined : (
               <Button variant="secondary" size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus className="size-4" />
                 New company

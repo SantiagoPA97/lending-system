@@ -11,7 +11,7 @@ public static class RepaymentEndpoints
     public static RouteGroupBuilder MapRepaymentEndpoints(this RouteGroupBuilder group)
     {
         group.MapPost("/{id:guid}/reverse", Reverse)
-            .RequireAuthorization(AuthPolicies.Admin);
+            .RequireAuthorization(Permissions.ReverseRepayments);
         return group;
     }
 

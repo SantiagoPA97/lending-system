@@ -109,9 +109,9 @@ try
 
     app.MapGroup("/auth").MapAuthEndpoints(authMode).WithTags("Auth");
 
-    // Every /api endpoint requires at least the viewer role; feature files
-    // tighten specific routes to operator/admin.
-    var api = app.MapGroup("/api").RequireAuthorization(AuthPolicies.Viewer);
+    // Every /api endpoint requires at least read access; feature files tighten
+    // specific routes with narrower permissions.
+    var api = app.MapGroup("/api").RequireAuthorization(Permissions.Read);
     api.MapGroup("/companies").MapCompanyEndpoints().WithTags("Companies");
     api.MapGroup("/facilities").MapFacilityEndpoints().WithTags("Facilities");
     api.MapGroup("/repayments").MapRepaymentEndpoints().WithTags("Repayments");

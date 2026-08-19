@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { permissionFlags } from '@/lib/permissions'
 import type { AuthMeResponse, LogoutResponse, Role } from '@/types/api'
 
 export const authKeys = {
@@ -24,9 +25,8 @@ export function primaryRole(roles: Role[] | undefined): Role | null {
 export function usePermissions() {
   const { data } = useAuth()
   const roles = (data?.authenticated && data.roles) || []
-  const canAdmin = roles.includes('admin')
-  const canOperate = canAdmin || roles.includes('operator')
-  return { roles, role: primaryRole(roles), canOperate, canAdmin, readOnly: !canOperate }
+  const permissions = (data?.authenticated && data.permissions) || []
+  return { roles, role: primaryRole(roles), permissions, ...permissionFlags(permissions) }
 }
 
 export function useLogout() {

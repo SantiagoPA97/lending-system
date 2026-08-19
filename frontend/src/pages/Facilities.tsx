@@ -25,7 +25,7 @@ export default function Facilities() {
   const [companyId, setCompanyId] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [createCompanyId, setCreateCompanyId] = useState('')
-  const { canOperate } = usePermissions()
+  const { canManagePortfolio } = usePermissions()
 
   // Deep link from a company page: /facilities?new=1&companyId=… opens the
   // create dialog preselected, then cleans the URL so refresh doesn't reopen it.
@@ -111,7 +111,7 @@ export default function Facilities() {
         title="Facilities"
         description="Commitments, terms and outstanding balances across all borrowers."
         actions={
-          canOperate && (
+          canManagePortfolio && (
             <Button onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" />
               New facility
@@ -198,7 +198,7 @@ export default function Facilities() {
               <Button variant="secondary" size="sm" onClick={clearFilters}>
                 Clear filters
               </Button>
-            ) : canOperate ? (
+            ) : canManagePortfolio ? (
               <Button size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus className="size-4" />
                 New facility

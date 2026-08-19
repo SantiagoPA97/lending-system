@@ -58,15 +58,19 @@ Two modes (`Auth:Mode`):
 - **Bypass** (local default): `GET /auth/dev-login?role=viewer|operator|admin` issues a session for a fake user — the login screen is a role picker.
 - **Auth0** (production): standard ASP.NET `OpenIdConnect` + cookie handlers, no vendor SDK. Google social connection enabled = real SSO. Roles arrive as a namespaced custom claim (`https://lending/roles`, added by an Auth0 Action) and are mapped to ASP.NET role claims.
 
-### Role permission matrix
+### Roles and permissions
 
-| Action | viewer | operator | admin |
-|---|---|---|---|
-| View everything (companies, facilities, schedules, dashboard, search, audit, assistant) | yes | yes | yes |
-| Create/edit companies and facilities, activate company/facility, record repayments | – | yes | yes |
-| Deactivate company, cancel/default facility, reverse repayments | – | – | yes |
+Authorization is **permission-based**: endpoints authorize against fine-grained permissions (`portfolio.read`, `portfolio.manage`, `repayments.record`, `repayments.reverse`, `facilities.close`), and roles are just bundles of permissions defined in one map (`RolePermissions` in `Features/Auth/Permissions.cs`). Permissions are resolved from the session's role claims on every request, so map changes apply to existing sessions instantly. Adding a role = one entry in that map + the matching Auth0 role. `/auth/me` returns both `roles` and the derived `permissions`, which the UI uses to hide/disable actions.
 
-Enforced server-side via widening role policies (admin ⊃ operator ⊃ viewer); the UI additionally hides/disables actions by role. Unauthorized responses are RFC 7807 problem JSON (401/403), never login redirects.
+| Action | Permission | viewer | operator | admin |
+|---|---|---|---|---|
+| View everything (companies, facilities, schedules, dashboard, search, audit, assistant) | `portfolio.read` | yes | yes | yes |
+| Create/edit companies and facilities, activate company/facility | `portfolio.manage` | – | yes | yes |
+| Record repayments | `repayments.record` | – | yes | yes |
+| Reverse repayments | `repayments.reverse` | – | – | yes |
+| Deactivate company, cancel/default facility | `facilities.close` | – | – | yes |
+
+Unauthorized responses are RFC 7807 problem JSON (401/403), never login redirects.
 
 **Test users:** three reviewer accounts (one per role) are created in the Auth0 dashboard — credentials are provided with the submission. *(Placeholder: add credentials here.)*
 

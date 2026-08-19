@@ -17,20 +17,20 @@ public static class FacilityEndpoints
         group.MapGet("/", GetList);
         group.MapGet("/{id:guid}", GetById);
         group.MapPost("/", Create).WithValidation<CreateFacilityRequest>()
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.ManagePortfolio);
         group.MapPut("/{id:guid}", Update).WithValidation<UpdateFacilityRequest>()
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.ManagePortfolio);
         group.MapPost("/{id:guid}/activate", Activate)
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.ManagePortfolio);
         group.MapPost("/{id:guid}/cancel", Cancel)
-            .RequireAuthorization(AuthPolicies.Admin);
+            .RequireAuthorization(Permissions.CloseFacilities);
         group.MapPost("/{id:guid}/default", MarkDefaulted)
-            .RequireAuthorization(AuthPolicies.Admin);
+            .RequireAuthorization(Permissions.CloseFacilities);
         group.MapGet("/{id:guid}/schedule", GetSchedule);
         // Schedule preview is a projection (read-only) despite being a POST, so viewer access is fine.
         group.MapPost("/schedule-preview", SchedulePreview).WithValidation<SchedulePreviewRequest>();
         group.MapPost("/{id:guid}/repayments", RecordRepayment).WithValidation<RecordRepaymentRequest>()
-            .RequireAuthorization(AuthPolicies.Operator);
+            .RequireAuthorization(Permissions.RecordRepayments);
         group.MapGet("/{id:guid}/repayments", GetRepayments);
         return group;
     }

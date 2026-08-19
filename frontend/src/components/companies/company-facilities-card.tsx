@@ -19,7 +19,7 @@ import type { CompanyDetailResponse } from '@/types/api'
 
 export function CompanyFacilitiesCard({ company }: { company: CompanyDetailResponse }) {
   const navigate = useNavigate()
-  const { canOperate } = usePermissions()
+  const { canManagePortfolio } = usePermissions()
   const inactive = company.status === 'Inactive'
   const facilities = company.facilities
 
@@ -33,7 +33,7 @@ export function CompanyFacilitiesCard({ company }: { company: CompanyDetailRespo
         {inactive ? (
           <p className="text-[13px] text-muted">Inactive companies can’t receive new facilities</p>
         ) : (
-          canOperate && (
+          canManagePortfolio && (
             <Button
               size="sm"
               variant="secondary"
@@ -54,7 +54,7 @@ export function CompanyFacilitiesCard({ company }: { company: CompanyDetailRespo
               ? 'Reactivate the company to open its first facility.'
               : 'Open the first credit facility for this borrower.'}
           </p>
-          {!inactive && canOperate && (
+          {!inactive && canManagePortfolio && (
             <Link
               to={`/facilities?new=1&companyId=${company.id}`}
               className="mt-1 text-sm font-medium text-accent hover:text-accent-hover"
