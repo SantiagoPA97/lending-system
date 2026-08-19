@@ -77,13 +77,15 @@ try
 
     var app = builder.Build();
 
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    var forwardedHeaders = new ForwardedHeadersOptions
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor,
-        // Railway's edge proxy is not a known proxy to ASP.NET; trust it explicitly.
-        KnownNetworks = { },
-        KnownProxies = { },
-    });
+    };
+    // Railway's edge proxy address is dynamic; clear the loopback-only defaults so its
+    // X-Forwarded-* headers are honored (the container is only reachable through it).
+    forwardedHeaders.KnownNetworks.Clear();
+    forwardedHeaders.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwardedHeaders);
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
