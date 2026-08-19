@@ -43,8 +43,8 @@ Local default auth is **Bypass** mode: the login screen shows a demo role picker
 
 | Suite | Count | Command |
 |---|---|---|
-| Domain (xUnit) — schedule math, rounding, allocation, state machines, Money | 106 | `cd backend && dotnet test tests/Lending.Domain.Tests` |
-| API integration (WebApplicationFactory + Testcontainers PostgreSQL) | 24 | `cd backend && dotnet test tests/Lending.Api.Tests` (requires Docker) |
+| Domain (xUnit) — schedule math, rounding, allocation, state machines, Money | 122 | `cd backend && dotnet test tests/Lending.Domain.Tests` |
+| API integration (WebApplicationFactory + Testcontainers PostgreSQL) | 29 | `cd backend && dotnet test tests/Lending.Api.Tests` (requires Docker) |
 | Frontend (Vitest) — formatters, utils, component tests | 23 | `cd frontend && npm test` |
 
 Integration tests run against a real Postgres container, so FTS/trigram search and `xmin` concurrency are tested against actual database behavior, not a fake.
@@ -118,6 +118,8 @@ All inputs validated with FluentValidation; all errors are RFC 7807 ProblemDetai
 - Repayments are allocated **interest-first** (oldest unpaid installments first), remainder to principal.
 - **Reversal-only corrections** — repayment ledger entries are immutable.
 - **Banker's rounding at 2 decimal places** (`MidpointRounding.ToEven`) everywhere.
+- **Early full settlement waives remaining future interest** — when a repayment brings outstanding principal to zero, unpaid interest on not-yet-due installments is waived (not counted as received) and the schedule is marked settled. Reversing the settling repayment restores the waived amounts.
+- **Repayments cannot be dated before the facility start date or in the future** — the system records payments that already happened.
 
 ## CI/CD
 

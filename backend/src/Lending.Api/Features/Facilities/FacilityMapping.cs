@@ -26,10 +26,13 @@ public static class FacilityMapping
         Company company,
         IReadOnlyList<RepaymentScheduleItem> schedule)
     {
-        var nextDue = schedule
-            .Where(i => !i.IsSettled)
-            .OrderBy(i => i.Period)
-            .FirstOrDefault();
+        // Only an active facility has an upcoming installment to collect.
+        var nextDue = facility.Status == FacilityStatus.Active
+            ? schedule
+                .Where(i => !i.IsSettled)
+                .OrderBy(i => i.Period)
+                .FirstOrDefault()
+            : null;
 
         return new FacilityDetailResponse(
             facility.Id,

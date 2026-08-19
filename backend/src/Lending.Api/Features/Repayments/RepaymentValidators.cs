@@ -15,6 +15,10 @@ public sealed class RecordRepaymentRequestValidator : AbstractValidator<RecordRe
         RuleFor(x => x.PaymentDate)
             .NotEqual(default(DateOnly))
             .WithMessage("Payment date is required.");
+        // A recording system captures payments that already happened.
+        RuleFor(x => x.PaymentDate)
+            .Must(d => d <= DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithMessage("Payment date cannot be in the future.");
         RuleFor(x => x.Note).MaximumLength(500);
     }
 }

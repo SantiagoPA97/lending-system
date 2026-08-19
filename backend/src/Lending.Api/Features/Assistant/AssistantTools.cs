@@ -143,13 +143,20 @@ public static class AssistantTools
         if (minOutstanding is not null)
             facilities = facilities.Where(x => x.f.OutstandingPrincipal >= minOutstanding);
 
+        if (minPercentRepaid is not null)
+        {
+            // percentRepaid >= min  <=>  outstanding <= (1 - min/100) * commitment,
+            // which translates to SQL so the filter runs before the row cap.
+            var remainingFraction = 1m - Math.Clamp(minPercentRepaid.Value, 0m, 100m) / 100m;
+            facilities = facilities.Where(x =>
+                x.f.Status != FacilityStatus.Draft
+                && x.f.Status != FacilityStatus.Cancelled
+                && x.f.OutstandingPrincipal <= x.f.CommitmentAmount * remainingFraction);
+        }
+
         var rows = await facilities
             .OrderByDescending(x => x.f.OutstandingPrincipal)
             .ThenBy(x => x.f.Reference)
-            .Take(200)
-            .ToListAsync(ct);
-
-        var results = rows
             .Select(x => new
             {
                 x.f.Reference,
@@ -157,18 +164,33 @@ public static class AssistantTools
                 x.f.Status,
                 x.f.RepaymentType,
                 x.f.Currency,
-                Commitment = x.f.CommitmentAmount,
-                Outstanding = x.f.OutstandingPrincipal,
-                AnnualInterestRatePercent = x.f.AnnualInterestRate,
+                x.f.CommitmentAmount,
+                x.f.OutstandingPrincipal,
+                x.f.AnnualInterestRate,
                 x.f.TermMonths,
-                x.f.StartDate,
-                // Percent of principal repaid — only meaningful once the facility was activated.
-                PercentRepaid = x.f.Status is FacilityStatus.Draft or FacilityStatus.Cancelled
-                    ? (decimal?)null
-                    : Math.Round((x.f.CommitmentAmount - x.f.OutstandingPrincipal) / x.f.CommitmentAmount * 100m, 1)
+                x.f.StartDate
             })
-            .Where(r => minPercentRepaid is null || (r.PercentRepaid ?? -1m) >= minPercentRepaid)
             .Take(MaxResults)
+            .ToListAsync(ct);
+
+        var results = rows
+            .Select(x => new
+            {
+                x.Reference,
+                x.Company,
+                x.Status,
+                x.RepaymentType,
+                x.Currency,
+                Commitment = x.CommitmentAmount,
+                Outstanding = x.OutstandingPrincipal,
+                AnnualInterestRatePercent = x.AnnualInterestRate,
+                x.TermMonths,
+                x.StartDate,
+                // Percent of principal repaid — only meaningful once the facility was activated.
+                PercentRepaid = x.Status is FacilityStatus.Draft or FacilityStatus.Cancelled
+                    ? (decimal?)null
+                    : Math.Round((x.CommitmentAmount - x.OutstandingPrincipal) / x.CommitmentAmount * 100m, 1)
+            })
             .ToList();
 
         var filters = new List<string>();

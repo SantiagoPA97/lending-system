@@ -46,10 +46,7 @@ public static class FacilityEndpoints
         string? currency = null,
         Guid? companyId = null)
     {
-        if (page < 1)
-            throw Invalid("page", "page must be at least 1.");
-        if (pageSize is < 1 or > 100)
-            throw Invalid("pageSize", "pageSize must be between 1 and 100.");
+        (page, pageSize) = Pagination.Normalize(page, pageSize);
 
         var query = db.Facilities.AsNoTracking();
 
@@ -238,9 +235,10 @@ public static class FacilityEndpoints
         LendingDbContext db,
         CancellationToken cancellationToken)
     {
+        // RecordRepayment only reads the schedule; the repayments collection is
+        // needed for reversal lookups, not here.
         var facility = await db.Facilities
                            .Include(f => f.Schedule)
-                           .Include(f => f.Repayments)
                            .FirstOrDefaultAsync(f => f.Id == id, cancellationToken)
                        ?? throw new EntityNotFoundException(nameof(Facility), id);
 

@@ -115,6 +115,7 @@ public class LifecycleTests(PostgresFixture fixture)
         Assert.Equal(0m, detail.OutstandingPrincipal);
         Assert.Equal(100_000m, detail.TotalPrincipalPaid);
         Assert.Equal(3_000m, detail.TotalInterestPaid);
+        Assert.Null(detail.NextDueInstallment); // only active facilities report a next due
 
         var repayments = await (await client.GetAsync($"/api/facilities/{facility.Id}/repayments"))
             .ReadAsAsync<List<RepaymentResponse>>();

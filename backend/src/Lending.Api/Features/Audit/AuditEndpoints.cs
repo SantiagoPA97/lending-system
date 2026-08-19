@@ -1,5 +1,3 @@
-using FluentValidation;
-using FluentValidation.Results;
 using Lending.Api.Common;
 using Lending.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -22,10 +20,7 @@ public static class AuditEndpoints
         int page = 1,
         int pageSize = 20)
     {
-        if (page < 1)
-            throw Invalid("page", "page must be at least 1.");
-        if (pageSize is < 1 or > 100)
-            throw Invalid("pageSize", "pageSize must be between 1 and 100.");
+        (page, pageSize) = Pagination.Normalize(page, pageSize);
 
         var query = db.AuditLogs.AsNoTracking();
 
@@ -55,7 +50,4 @@ public static class AuditEndpoints
             page,
             pageSize));
     }
-
-    private static ValidationException Invalid(string property, string message) =>
-        new([new ValidationFailure(property, message)]);
 }

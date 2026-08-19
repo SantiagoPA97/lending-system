@@ -34,7 +34,7 @@ public sealed class AssistantQueryRequestValidator : AbstractValidator<Assistant
                 .WithMessage("role must be 'user' or 'assistant'.");
             message.RuleFor(m => m.Content)
                 .NotEmpty()
-                .MaximumLength(8000);
+                .MaximumLength(20000);
         });
     }
 }

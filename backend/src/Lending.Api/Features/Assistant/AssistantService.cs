@@ -12,8 +12,14 @@ public sealed class AssistantUpstreamException(string message, Exception? inner 
 public static class AssistantService
 {
     public const string DefaultModel = "claude-sonnet-5";
-    private const int MaxToolRounds = 8;
+    private const int MaxToolRounds = 7;
     private static readonly TimeSpan UpstreamTimeout = TimeSpan.FromSeconds(60);
+
+    // Singleton client so the underlying HttpClient (and its connection pool) is
+    // reused instead of being rebuilt per request.
+    private static readonly Lazy<AnthropicClient> Client = new(
+        () => new AnthropicClient { ApiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") },
+        LazyThreadSafetyMode.ExecutionAndPublication);
 
     public static async Task<AssistantQueryResponse> QueryAsync(
         AssistantQueryRequest request,
@@ -31,17 +37,8 @@ public static class AssistantService
         if (string.IsNullOrWhiteSpace(model))
             model = DefaultModel;
 
-        AnthropicClient client = new() { ApiKey = apiKey };
-
+        var client = Client.Value;
         var messages = BuildMessages(request);
-        var parameters = new MessageCreateParams
-        {
-            Model = model,
-            MaxTokens = 2048,
-            System = BuildSystemPrompt(),
-            Tools = AssistantTools.Definitions(),
-            Messages = messages
-        };
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(UpstreamTimeout);
@@ -51,8 +48,20 @@ public static class AssistantService
 
         try
         {
-            for (var round = 1; round <= MaxToolRounds; round++)
+            // Up to MaxToolRounds tool rounds; one extra final round with tools
+            // disabled guarantees the loop always ends on a plain text answer.
+            for (var round = 1; round <= MaxToolRounds + 1; round++)
             {
+                var isFinalRound = round == MaxToolRounds + 1;
+                var parameters = new MessageCreateParams
+                {
+                    Model = model,
+                    MaxTokens = 2048,
+                    System = BuildSystemPrompt(),
+                    Tools = AssistantTools.Definitions(),
+                    ToolChoice = isFinalRound ? new ToolChoice(new ToolChoiceNone()) : null,
+                    Messages = messages
+                };
                 response = await client.Messages.Create(parameters, cancellationToken: timeoutCts.Token);
 
                 var toolUses = response.Content
@@ -62,10 +71,10 @@ public static class AssistantService
 
                 logger.LogInformation(
                     "Assistant round {Round}/{MaxRounds}: stop={StopReason} toolCalls={ToolNames}",
-                    round, MaxToolRounds, response.StopReason,
+                    round, MaxToolRounds + 1, response.StopReason,
                     string.Join(",", toolUses.Select(t => t.Name)));
 
-                if (toolUses.Count == 0)
+                if (isFinalRound || toolUses.Count == 0)
                     break;
 
                 messages.Add(new MessageParam { Role = Role.Assistant, Content = ToParamContent(response) });
@@ -80,6 +89,13 @@ public static class AssistantService
                 }
 
                 messages.Add(new MessageParam { Role = Role.User, Content = toolResults });
+
+                if (round == MaxToolRounds)
+                    messages.Add(new MessageParam
+                    {
+                        Role = Role.User,
+                        Content = "Tool budget exhausted. Answer the question now using only the data gathered above."
+                    });
             }
         }
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)

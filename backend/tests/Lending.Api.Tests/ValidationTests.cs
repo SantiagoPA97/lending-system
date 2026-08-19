@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Lending.Api.Features.Companies;
@@ -40,12 +41,47 @@ public class ValidationTests(PostgresFixture fixture)
         Assert.True(errors.ContainsKey("termMonths"));
     }
 
-    [Fact]
-    public async Task ListCompanies_WithInvalidPage_Returns400()
+    [Theory]
+    [InlineData("/api/companies")]
+    [InlineData("/api/facilities")]
+    [InlineData("/api/audit")]
+    [InlineData("/api/search")]
+    public async Task ListEndpoints_WithOutOfRangePaging_ClampInsteadOf500(string path)
     {
         var client = await fixture.CreateClientAsync("viewer");
-        var problem = await (await client.GetAsync("/api/companies?page=0")).ReadProblemAsync(400);
-        Assert.True(problem["errors"]!.AsObject().ContainsKey("page"));
+        var response = await client.GetAsync($"{path}?page=-3&pageSize=5000");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+        Assert.Equal(1, body["page"]!.GetValue<int>());
+        Assert.Equal(100, body["pageSize"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public async Task RecordRepayment_WithFutureDate_Returns400()
+    {
+        var client = await fixture.CreateClientAsync("operator");
+        var company = await Api.CreateCompanyAsync(client, "Future Payments Inc");
+        var facility = await Api.CreateFacilityAsync(
+            client, company.Id, 10_000m, Currency.USD, 5m, 12, Api.Today, RepaymentType.Bullet);
+        await Api.ActivateFacilityAsync(client, facility.Id);
+
+        var response = await Api.RepayAsync(client, facility.Id, 100m, Currency.USD, Api.Today.AddDays(1));
+        var problem = await response.ReadProblemAsync(400);
+        Assert.True(problem["errors"]!.AsObject().ContainsKey("paymentDate"));
+    }
+
+    [Fact]
+    public async Task RecordRepayment_BeforeFacilityStart_Returns422()
+    {
+        var client = await fixture.CreateClientAsync("operator");
+        var company = await Api.CreateCompanyAsync(client, "Backdated Payments Inc");
+        var facility = await Api.CreateFacilityAsync(
+            client, company.Id, 10_000m, Currency.USD, 5m, 12, Api.Today.AddDays(-10), RepaymentType.Bullet);
+        await Api.ActivateFacilityAsync(client, facility.Id);
+
+        var response = await Api.RepayAsync(client, facility.Id, 100m, Currency.USD, Api.Today.AddDays(-11));
+        await response.ReadProblemAsync(422, DomainErrors.Repayment.BeforeStart);
     }
 
     [Fact]
