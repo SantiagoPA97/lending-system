@@ -118,8 +118,8 @@ export default function CompanyDetail() {
               )
         }
       />
-      <div className="grid items-start gap-4 lg:grid-cols-3">
-        <div className="grid gap-4 lg:col-span-2">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="grid min-w-0 gap-4">
           <CompanyFacilitiesCard company={company} />
           <AuditTrailCard entityType="Company" entityId={company.id} />
         </div>
