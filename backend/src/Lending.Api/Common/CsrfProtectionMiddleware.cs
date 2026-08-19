@@ -27,7 +27,7 @@ public sealed class CsrfProtectionMiddleware(RequestDelegate next)
                     Title = "Missing CSRF header",
                     Detail = $"Mutating requests to /api must include the {HeaderName} header.",
                     Instance = request.Path,
-                    Extensions = { ["errorCode"] = "csrf.missing_header" }
+                    Extensions = { ["errorCode"] = ApiErrors.Csrf.MissingHeader }
                 },
                 options: null,
                 contentType: "application/problem+json");

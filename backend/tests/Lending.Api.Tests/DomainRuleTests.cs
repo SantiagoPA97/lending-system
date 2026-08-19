@@ -18,7 +18,7 @@ public class DomainRuleTests(PostgresFixture fixture)
         await Api.ActivateFacilityAsync(client, facility.Id);
 
         var response = await Api.RepayAsync(client, facility.Id, 50_000.01m, Currency.USD, Api.Today);
-        await response.ReadProblemAsync(422, "repayment.exceeds_outstanding");
+        await response.ReadProblemAsync(422, DomainErrors.Repayment.ExceedsOutstanding);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class DomainRuleTests(PostgresFixture fixture)
             new CreateFacilityRequest(
                 company.Id, 10_000m, Currency.USD, 5m, 12, Api.Today, RepaymentType.Amortizing),
             Api.Json);
-        await response.ReadProblemAsync(422, "company.inactive");
+        await response.ReadProblemAsync(422, DomainErrors.Company.Inactive);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class DomainRuleTests(PostgresFixture fixture)
         var response = await client.PutAsJsonAsync($"/api/facilities/{facility.Id}",
             new UpdateFacilityRequest(25_000m, Currency.USD, 5m, 12, Api.Today, RepaymentType.Amortizing),
             Api.Json);
-        await response.ReadProblemAsync(422, "facility.not_editable");
+        await response.ReadProblemAsync(422, DomainErrors.Facility.NotEditable);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class DomainRuleTests(PostgresFixture fixture)
         await Api.ActivateFacilityAsync(client, facility.Id);
 
         var response = await client.PostAsync($"/api/facilities/{facility.Id}/activate", null);
-        await response.ReadProblemAsync(422, "facility.invalid_transition");
+        await response.ReadProblemAsync(422, DomainErrors.Facility.InvalidTransition);
     }
 
     [Fact]
@@ -76,6 +76,6 @@ public class DomainRuleTests(PostgresFixture fixture)
         await Api.ActivateFacilityAsync(client, facility.Id);
 
         var response = await Api.RepayAsync(client, facility.Id, 1_000m, Currency.EUR, Api.Today);
-        await response.ReadProblemAsync(422, "repayment.currency_mismatch");
+        await response.ReadProblemAsync(422, DomainErrors.Repayment.CurrencyMismatch);
     }
 }

@@ -34,7 +34,7 @@ public static class AssistantEndpoints
                 statusCode: StatusCodes.Status502BadGateway,
                 title: "Assistant unavailable",
                 detail: ex.Message,
-                extensions: new Dictionary<string, object?> { ["errorCode"] = "assistant.upstream_error" });
+                extensions: new Dictionary<string, object?> { ["errorCode"] = ApiErrors.Assistant.UpstreamError });
         }
     }
 }

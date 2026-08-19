@@ -15,7 +15,7 @@ public class RepaymentTests
         var facility = TestData.DraftFacility();
         var ex = Assert.Throws<DomainException>(
             () => facility.RecordRepayment(Usd(100m), TestData.Start));
-        Assert.Equal("facility.not_active", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.NotActive, ex.ErrorCode);
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public class RepaymentTests
         var facility = TestData.ActiveFacility(currency: Currency.USD);
         var ex = Assert.Throws<DomainException>(
             () => facility.RecordRepayment(new Money(100m, Currency.EUR), TestData.Start.AddMonths(1)));
-        Assert.Equal("repayment.currency_mismatch", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.CurrencyMismatch, ex.ErrorCode);
     }
 
     [Theory]
@@ -35,7 +35,7 @@ public class RepaymentTests
         var facility = TestData.ActiveFacility();
         var ex = Assert.Throws<DomainException>(
             () => facility.RecordRepayment(Usd(amount), TestData.Start.AddMonths(1)));
-        Assert.Equal("repayment.invalid_amount", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.InvalidAmount, ex.ErrorCode);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class RepaymentTests
         // At P1 due date the maximum payable is 10,000 + 100 interest.
         var ex = Assert.Throws<DomainException>(
             () => facility.RecordRepayment(Usd(10_100.01m), TestData.Start.AddMonths(1)));
-        Assert.Equal("repayment.exceeds_outstanding", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.ExceedsOutstanding, ex.ErrorCode);
         Assert.Equal(10_000m, facility.OutstandingPrincipal);
         Assert.All(facility.Schedule, i => Assert.Equal(0m, i.InterestPaid + i.PrincipalPaid));
     }
@@ -132,7 +132,7 @@ public class RepaymentTests
         var facility = TestData.ActiveFacility();
         var ex = Assert.Throws<DomainException>(
             () => facility.RecordRepayment(Usd(10_000.01m), TestData.Start.AddDays(3)));
-        Assert.Equal("repayment.exceeds_outstanding", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.ExceedsOutstanding, ex.ErrorCode);
     }
 
     [Fact]
@@ -171,6 +171,6 @@ public class RepaymentTests
 
         var ex = Assert.Throws<DomainException>(
             () => facility.RecordRepayment(Usd(1m), TestData.Start.AddMonths(1)));
-        Assert.Equal("facility.not_active", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.NotActive, ex.ErrorCode);
     }
 }

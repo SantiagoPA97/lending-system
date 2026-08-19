@@ -34,20 +34,20 @@ public sealed class ScheduleCalculator : IScheduleCalculator
             RepaymentType.Bullet => Bullet(terms, monthlyRate),
             RepaymentType.InterestOnly => InterestOnly(terms, monthlyRate),
             RepaymentType.Amortizing => Amortizing(terms, monthlyRate),
-            _ => throw new DomainException("schedule.invalid_terms", $"Unknown repayment type {terms.RepaymentType}.")
+            _ => throw new DomainException(DomainErrors.Schedule.InvalidTerms, $"Unknown repayment type {terms.RepaymentType}.")
         };
     }
 
     private static void Validate(ScheduleTerms terms)
     {
         if (terms.Principal <= 0m)
-            throw new DomainException("schedule.invalid_terms", "Principal must be positive.");
+            throw new DomainException(DomainErrors.Schedule.InvalidTerms, "Principal must be positive.");
         if (MoneyMath.Round(terms.Principal) != terms.Principal)
-            throw new DomainException("schedule.invalid_terms", "Principal cannot have more than two decimal places.");
+            throw new DomainException(DomainErrors.Schedule.InvalidTerms, "Principal cannot have more than two decimal places.");
         if (terms.AnnualInterestRate < 0m)
-            throw new DomainException("schedule.invalid_terms", "Interest rate cannot be negative.");
+            throw new DomainException(DomainErrors.Schedule.InvalidTerms, "Interest rate cannot be negative.");
         if (terms.TermMonths < 1)
-            throw new DomainException("schedule.invalid_terms", "Term must be at least one month.");
+            throw new DomainException(DomainErrors.Schedule.InvalidTerms, "Term must be at least one month.");
     }
 
     private static List<SchedulePeriod> Bullet(ScheduleTerms terms, decimal monthlyRate)

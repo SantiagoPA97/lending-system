@@ -23,7 +23,7 @@ public class MoneyTests
     {
         var ex = Assert.Throws<DomainException>(
             () => new Money(1m, Currency.USD) + new Money(1m, Currency.EUR));
-        Assert.Equal("money.currency_mismatch", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Money.CurrencyMismatch, ex.ErrorCode);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class MoneyTests
     {
         var ex = Assert.Throws<DomainException>(
             () => new Money(1m, Currency.GBP) - new Money(1m, Currency.COP));
-        Assert.Equal("money.currency_mismatch", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Money.CurrencyMismatch, ex.ErrorCode);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class MoneyTests
     {
         var ex = Assert.Throws<DomainException>(
             () => new Money(1m, Currency.USD) > new Money(1m, Currency.EUR));
-        Assert.Equal("money.currency_mismatch", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Money.CurrencyMismatch, ex.ErrorCode);
     }
 
     [Fact]

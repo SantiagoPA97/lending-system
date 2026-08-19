@@ -98,7 +98,7 @@ public class RepaymentReversalTests
 
         var ex = Assert.Throws<DomainException>(
             () => facility.ReverseRepayment(original.Id, ReversalDate));
-        Assert.Equal("repayment.already_reversed", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.AlreadyReversed, ex.ErrorCode);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class RepaymentReversalTests
 
         var ex = Assert.Throws<DomainException>(
             () => facility.ReverseRepayment(reversal.Id, ReversalDate));
-        Assert.Equal("repayment.cannot_reverse_reversal", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.CannotReverseReversal, ex.ErrorCode);
     }
 
     [Fact]
@@ -119,6 +119,6 @@ public class RepaymentReversalTests
         var facility = TestData.ActiveFacility();
         var ex = Assert.Throws<DomainException>(
             () => facility.ReverseRepayment(Guid.NewGuid(), ReversalDate));
-        Assert.Equal("repayment.not_found", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Repayment.NotFound, ex.ErrorCode);
     }
 }

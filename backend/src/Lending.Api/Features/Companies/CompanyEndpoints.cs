@@ -156,7 +156,7 @@ public static class CompanyEndpoints
             c => c.Name == name && (excludeId == null || c.Id != excludeId),
             cancellationToken);
         if (taken)
-            throw new DomainException("company.duplicate_name", $"A company named '{name}' already exists.");
+            throw new DomainException(DomainErrors.Company.DuplicateName, $"A company named '{name}' already exists.");
     }
 
     private static IQueryable<Company> ApplySort(IQueryable<Company> query, string? sort)

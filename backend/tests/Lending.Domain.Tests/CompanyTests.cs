@@ -25,7 +25,7 @@ public class CompanyTests
         var company = TestData.Company();
         company.Deactivate();
         var ex = Assert.Throws<DomainException>(company.Deactivate);
-        Assert.Equal("company.invalid_transition", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Company.InvalidTransition, ex.ErrorCode);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class CompanyTests
     public void Activate_WhenAlreadyActive_Throws()
     {
         var ex = Assert.Throws<DomainException>(TestData.Company().Activate);
-        Assert.Equal("company.invalid_transition", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Company.InvalidTransition, ex.ErrorCode);
     }
 
     [Fact]
@@ -51,6 +51,6 @@ public class CompanyTests
         company.Deactivate();
         var ex = Assert.Throws<DomainException>(() => Facility.Create(
             company, new Money(1_000m, Currency.USD), 5m, 12, TestData.Start, RepaymentType.Bullet));
-        Assert.Equal("company.inactive", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Company.Inactive, ex.ErrorCode);
     }
 }

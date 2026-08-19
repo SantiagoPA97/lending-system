@@ -122,7 +122,7 @@ public class LifecycleTests(PostgresFixture fixture)
 
         // Completed facilities accept no further repayments.
         var rejected = await Api.RepayAsync(client, facility.Id, 100m, Currency.USD, Api.Today);
-        await rejected.ReadProblemAsync(422, "facility.not_active");
+        await rejected.ReadProblemAsync(422, DomainErrors.Facility.NotActive);
 
         // Audit trail exists and carries the dev-login user attribution.
         var facilityAudit = await (await client.GetAsync(

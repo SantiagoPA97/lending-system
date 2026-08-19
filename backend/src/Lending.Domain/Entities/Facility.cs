@@ -18,7 +18,7 @@ public class Facility
         RepaymentType repaymentType)
     {
         if (company.Status != CompanyStatus.Active)
-            throw new DomainException("company.inactive", "Inactive companies cannot receive new facilities.");
+            throw new DomainException(DomainErrors.Company.Inactive, "Inactive companies cannot receive new facilities.");
 
         var facility = new Facility
         {
@@ -61,7 +61,7 @@ public class Facility
         RepaymentType repaymentType)
     {
         if (Status != FacilityStatus.Draft)
-            throw new DomainException("facility.not_editable", "Only draft facilities can be edited.");
+            throw new DomainException(DomainErrors.Facility.NotEditable, "Only draft facilities can be edited.");
         SetTerms(commitment, annualInterestRate, termMonths, startDate, repaymentType);
         Touch();
     }
@@ -70,7 +70,7 @@ public class Facility
     {
         if (Status != FacilityStatus.Draft)
             throw new DomainException(
-                "facility.invalid_transition",
+                DomainErrors.Facility.InvalidTransition,
                 $"Cannot activate a facility in status {Status}.");
 
         var periods = scheduleCalculator.Generate(
@@ -85,7 +85,7 @@ public class Facility
     {
         if (Status is not (FacilityStatus.Draft or FacilityStatus.Active))
             throw new DomainException(
-                "facility.invalid_transition",
+                DomainErrors.Facility.InvalidTransition,
                 $"Cannot cancel a facility in status {Status}.");
         Status = FacilityStatus.Cancelled;
         Touch();
@@ -95,7 +95,7 @@ public class Facility
     {
         if (Status != FacilityStatus.Active)
             throw new DomainException(
-                "facility.invalid_transition",
+                DomainErrors.Facility.InvalidTransition,
                 $"Cannot default a facility in status {Status}.");
         Status = FacilityStatus.Defaulted;
         Touch();
@@ -104,17 +104,17 @@ public class Facility
     public Repayment RecordRepayment(Money amount, DateOnly paymentDate, string? note = null)
     {
         if (Status != FacilityStatus.Active)
-            throw new DomainException("facility.not_active", "Repayments can only be recorded on active facilities.");
+            throw new DomainException(DomainErrors.Facility.NotActive, "Repayments can only be recorded on active facilities.");
         note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
         if (note?.Length > 500)
-            throw new DomainException("repayment.note_too_long", "Repayment note must be at most 500 characters.");
+            throw new DomainException(DomainErrors.Repayment.NoteTooLong, "Repayment note must be at most 500 characters.");
         if (amount.Currency != Currency)
             throw new DomainException(
-                "repayment.currency_mismatch",
+                DomainErrors.Repayment.CurrencyMismatch,
                 $"Repayment currency {amount.Currency} does not match facility currency {Currency}.");
         var value = MoneyMath.Round(amount.Amount);
         if (value <= 0m)
-            throw new DomainException("repayment.invalid_amount", "Repayment amount must be positive.");
+            throw new DomainException(DomainErrors.Repayment.InvalidAmount, "Repayment amount must be positive.");
 
         var unpaidInterestDue = _schedule
             .Where(i => i.DueDate <= paymentDate)
@@ -122,7 +122,7 @@ public class Facility
         var maxPayable = OutstandingPrincipal + unpaidInterestDue;
         if (value > maxPayable)
             throw new DomainException(
-                "repayment.exceeds_outstanding",
+                DomainErrors.Repayment.ExceedsOutstanding,
                 $"Repayment of {value} exceeds the payable amount of {maxPayable} " +
                 "(outstanding principal plus unpaid interest due).");
 
@@ -184,11 +184,11 @@ public class Facility
     public Repayment ReverseRepayment(Guid repaymentId, DateOnly reversalDate)
     {
         var original = _repayments.FirstOrDefault(r => r.Id == repaymentId)
-            ?? throw new DomainException("repayment.not_found", $"Repayment {repaymentId} was not found on this facility.");
+            ?? throw new DomainException(DomainErrors.Repayment.NotFound, $"Repayment {repaymentId} was not found on this facility.");
         if (original.IsReversal)
-            throw new DomainException("repayment.cannot_reverse_reversal", "A reversal entry cannot be reversed.");
+            throw new DomainException(DomainErrors.Repayment.CannotReverseReversal, "A reversal entry cannot be reversed.");
         if (original.ReversedByRepaymentId is not null)
-            throw new DomainException("repayment.already_reversed", "This repayment has already been reversed.");
+            throw new DomainException(DomainErrors.Repayment.AlreadyReversed, "This repayment has already been reversed.");
 
         foreach (var allocation in original.Allocations)
         {
@@ -225,11 +225,11 @@ public class Facility
         RepaymentType repaymentType)
     {
         if (commitment.Amount <= 0m || MoneyMath.Round(commitment.Amount) != commitment.Amount)
-            throw new DomainException("facility.invalid_terms", "Commitment must be a positive amount with at most two decimal places.");
+            throw new DomainException(DomainErrors.Facility.InvalidTerms, "Commitment must be a positive amount with at most two decimal places.");
         if (annualInterestRate < 0m)
-            throw new DomainException("facility.invalid_terms", "Interest rate cannot be negative.");
+            throw new DomainException(DomainErrors.Facility.InvalidTerms, "Interest rate cannot be negative.");
         if (termMonths < 1)
-            throw new DomainException("facility.invalid_terms", "Term must be at least one month.");
+            throw new DomainException(DomainErrors.Facility.InvalidTerms, "Term must be at least one month.");
 
         CommitmentAmount = commitment.Amount;
         Currency = commitment.Currency;

@@ -59,7 +59,7 @@ public readonly record struct Money(decimal Amount, Currency Currency)
         if (left.Currency != right.Currency)
         {
             throw new DomainException(
-                "money.currency_mismatch",
+                DomainErrors.Money.CurrencyMismatch,
                 $"Cannot operate on amounts in {left.Currency} and {right.Currency}.");
         }
     }

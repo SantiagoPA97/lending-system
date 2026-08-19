@@ -57,7 +57,7 @@ public class Company
     public void Deactivate()
     {
         if (Status == CompanyStatus.Inactive)
-            throw new DomainException("company.invalid_transition", "Company is already inactive.");
+            throw new DomainException(DomainErrors.Company.InvalidTransition, "Company is already inactive.");
         Status = CompanyStatus.Inactive;
         Touch();
     }
@@ -65,7 +65,7 @@ public class Company
     public void Activate()
     {
         if (Status == CompanyStatus.Active)
-            throw new DomainException("company.invalid_transition", "Company is already active.");
+            throw new DomainException(DomainErrors.Company.InvalidTransition, "Company is already active.");
         Status = CompanyStatus.Active;
         Touch();
     }

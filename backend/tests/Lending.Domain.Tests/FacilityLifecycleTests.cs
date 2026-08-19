@@ -54,7 +54,7 @@ public class FacilityLifecycleTests
         var ex = Assert.Throws<DomainException>(() => Facility.Create(
             TestData.Company(), new Money(commitment, Currency.USD), rate, term,
             TestData.Start, RepaymentType.Amortizing));
-        Assert.Equal("facility.invalid_terms", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.InvalidTerms, ex.ErrorCode);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class FacilityLifecycleTests
     public void Activate_FromNonDraft_Throws(FacilityStatus status)
     {
         var ex = Assert.Throws<DomainException>(() => InStatus(status).Activate(TestData.Calculator));
-        Assert.Equal("facility.invalid_transition", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.InvalidTransition, ex.ErrorCode);
     }
 
     [Theory]
@@ -98,7 +98,7 @@ public class FacilityLifecycleTests
     public void Cancel_FromTerminalStatus_Throws(FacilityStatus status)
     {
         var ex = Assert.Throws<DomainException>(InStatus(status).Cancel);
-        Assert.Equal("facility.invalid_transition", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.InvalidTransition, ex.ErrorCode);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class FacilityLifecycleTests
     public void MarkDefaulted_FromNonActive_Throws(FacilityStatus status)
     {
         var ex = Assert.Throws<DomainException>(InStatus(status).MarkDefaulted);
-        Assert.Equal("facility.invalid_transition", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.InvalidTransition, ex.ErrorCode);
     }
 
     [Fact]
@@ -139,6 +139,6 @@ public class FacilityLifecycleTests
         var facility = InStatus(FacilityStatus.Active);
         var ex = Assert.Throws<DomainException>(() => facility.UpdateTerms(
             new Money(25_000m, Currency.USD), 8.5m, 24, TestData.Start, RepaymentType.Bullet));
-        Assert.Equal("facility.not_editable", ex.ErrorCode);
+        Assert.Equal(DomainErrors.Facility.NotEditable, ex.ErrorCode);
     }
 }

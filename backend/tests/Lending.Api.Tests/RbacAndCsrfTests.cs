@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Lending.Api.Common;
 using Lending.Api.Features.Companies;
 using Lending.Api.Features.Facilities;
 using Lending.Api.Features.Repayments;
@@ -82,7 +83,7 @@ public class RbacAndCsrfTests(PostgresFixture fixture)
         // The ledger is immutable: a repayment can only be reversed once.
         var again = await adminClient.PostAsJsonAsync(
             $"/api/repayments/{repayment.Repayment.Id}/reverse", new { }, Api.Json);
-        await again.ReadProblemAsync(422, "repayment.already_reversed");
+        await again.ReadProblemAsync(422, DomainErrors.Repayment.AlreadyReversed);
     }
 
     [Fact]
@@ -96,6 +97,6 @@ public class RbacAndCsrfTests(PostgresFixture fixture)
         var mutate = await client.PostAsJsonAsync("/api/companies",
             new CompanyRequest("Csrf Co", "Csrf Co Ltd", "REG-C1", "US", "Retail", "c@example.com"),
             Api.Json);
-        await mutate.ReadProblemAsync(400, "csrf.missing_header");
+        await mutate.ReadProblemAsync(400, ApiErrors.Csrf.MissingHeader);
     }
 }

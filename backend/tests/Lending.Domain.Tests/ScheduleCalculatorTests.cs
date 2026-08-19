@@ -171,7 +171,7 @@ public class ScheduleCalculatorTests
         {
             var ex = Assert.Throws<DomainException>(() => ScheduleCalculator.Calculate(
                 new ScheduleTerms(principal, rate, term, Start, type)));
-            Assert.Equal("schedule.invalid_terms", ex.ErrorCode);
+            Assert.Equal(DomainErrors.Schedule.InvalidTerms, ex.ErrorCode);
         }
     }
 }
