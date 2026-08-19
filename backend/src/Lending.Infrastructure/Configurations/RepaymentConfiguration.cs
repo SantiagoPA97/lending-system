@@ -13,6 +13,7 @@ public sealed class RepaymentConfiguration : IEntityTypeConfiguration<Repayment>
         builder.Property(r => r.PrincipalApplied).HasColumnType("numeric(18,2)");
         builder.Property(r => r.InterestApplied).HasColumnType("numeric(18,2)");
         builder.Property(r => r.Currency).HasConversion<string>().HasMaxLength(3);
+        builder.Property(r => r.Note).HasMaxLength(500);
 
         builder.HasIndex(r => r.ReversesRepaymentId);
         builder.HasIndex(r => r.PaymentDate);

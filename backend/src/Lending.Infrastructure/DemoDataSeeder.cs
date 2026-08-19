@@ -13,16 +13,16 @@ public static class DemoDataSeeder
 
         var calculator = new ScheduleCalculator();
 
-        var andes = new Company("Andes Coffee Exports", "Andes Coffee Exports S.A.S.", "CO-900123456", "Colombia", "Agriculture", "finance@andescoffee.co");
-        var nordwind = new Company("Nordwind Logistics", "Nordwind Logistics GmbH", "DE-HRB98214", "Germany", "Logistics", "treasury@nordwind.de");
-        var thames = new Company("Thames Analytics", "Thames Analytics Ltd", "GB-11482930", "United Kingdom", "Software", "cfo@thamesanalytics.co.uk");
-        var pacific = new Company("Pacific Crest Manufacturing", "Pacific Crest Manufacturing Inc.", "US-EIN-84-1029384", "United States", "Manufacturing", "ap@pacificcrest.com");
-        var iberia = new Company("Iberia Solar Partners", "Iberia Solar Partners S.L.", "ES-B87654321", "Spain", "Renewable Energy", "finanzas@iberiasolar.es");
-        var medellin = new Company("Medellin Textiles", "Medellin Textiles S.A.S.", "CO-901567890", "Colombia", "Textiles", "tesoreria@medellintextiles.co");
-        var greatLakes = new Company("Great Lakes Foods", "Great Lakes Foods Inc.", "US-EIN-38-5647382", "United States", "Food & Beverage", "finance@greatlakesfoods.com");
-        var alpine = new Company("Alpine Precision", "Alpine Precision AG", "CH-CHE-114.618.907", "Switzerland", "Industrial Equipment", "finance@alpineprecision.ch");
-        var celtic = new Company("Celtic Maritime", "Celtic Maritime Ltd", "IE-654321", "Ireland", "Shipping", "accounts@celticmaritime.ie");
-        var bayside = new Company("Bayside Robotics", "Bayside Robotics Corp.", "US-EIN-77-2938475", "United States", "Robotics", "cfo@baysiderobotics.com");
+        var andes = new Company("Andes Coffee Exports", "Andes Coffee Exports S.A.S.", "CO-900123456", "CO", "Agriculture", "finance@andescoffee.co");
+        var nordwind = new Company("Nordwind Logistics", "Nordwind Logistics GmbH", "DE-HRB98214", "DE", "Logistics", "treasury@nordwind.de");
+        var thames = new Company("Thames Analytics", "Thames Analytics Ltd", "GB-11482930", "GB", "Software", "cfo@thamesanalytics.co.uk");
+        var pacific = new Company("Pacific Crest Manufacturing", "Pacific Crest Manufacturing Inc.", "US-EIN-84-1029384", "US", "Manufacturing", "ap@pacificcrest.com");
+        var iberia = new Company("Iberia Solar Partners", "Iberia Solar Partners S.L.", "ES-B87654321", "ES", "Renewable Energy", "finanzas@iberiasolar.es");
+        var medellin = new Company("Medellin Textiles", "Medellin Textiles S.A.S.", "CO-901567890", "CO", "Textiles", "tesoreria@medellintextiles.co");
+        var greatLakes = new Company("Great Lakes Foods", "Great Lakes Foods Inc.", "US-EIN-38-5647382", "US", "Food & Beverage", "finance@greatlakesfoods.com");
+        var alpine = new Company("Alpine Precision", "Alpine Precision AG", "CH-CHE-114.618.907", "CH", "Industrial Equipment", "finance@alpineprecision.ch");
+        var celtic = new Company("Celtic Maritime", "Celtic Maritime Ltd", "IE-654321", "IE", "Shipping", "accounts@celticmaritime.ie");
+        var bayside = new Company("Bayside Robotics", "Bayside Robotics Corp.", "US-EIN-77-2938475", "US", "Robotics", "cfo@baysiderobotics.com");
 
         var companies = new[] { andes, nordwind, thames, pacific, iberia, medellin, greatLakes, alpine, celtic, bayside };
 

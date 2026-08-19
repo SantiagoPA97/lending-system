@@ -246,7 +246,8 @@ public static class FacilityEndpoints
 
         var repayment = facility.RecordRepayment(
             new Money(request.Amount, request.Currency),
-            request.PaymentDate);
+            request.PaymentDate,
+            request.Note);
         db.Repayments.Add(repayment);
 
         // Single SaveChanges = one DB transaction; xmin concurrency conflicts bubble as 409.

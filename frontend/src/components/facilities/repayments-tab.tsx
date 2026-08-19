@@ -133,6 +133,11 @@ function RepaymentRow({
         ) : (
           <span className="text-muted">Payment</span>
         )}
+        {repayment.note && (
+          <p className="mt-1 max-w-[40ch] truncate text-xs text-muted" title={repayment.note}>
+            {repayment.note}
+          </p>
+        )}
       </TableCell>
       <TableCell className="tabular text-[13px] text-muted">{periods || '—'}</TableCell>
       <TableCell className="text-right">

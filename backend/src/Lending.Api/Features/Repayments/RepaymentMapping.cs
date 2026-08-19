@@ -15,6 +15,7 @@ public static class RepaymentMapping
         repayment.IsReversal,
         repayment.ReversesRepaymentId,
         repayment.ReversedByRepaymentId,
+        repayment.Note,
         repayment.CreatedAtUtc,
         repayment.Allocations
             .Select(a => new RepaymentAllocationResponse(a.Period, a.Interest, a.Principal))

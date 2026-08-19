@@ -2,8 +2,6 @@ using Lending.Domain;
 
 namespace Lending.Api.Features.Repayments;
 
-// TODO: Note is accepted for API-contract stability but not yet persisted — the Repayment
-// entity has no note column; adding it needs a domain field + migration.
 public sealed record RecordRepaymentRequest(
     decimal Amount,
     Currency Currency,
@@ -25,6 +23,7 @@ public sealed record RepaymentResponse(
     bool IsReversal,
     Guid? ReversesRepaymentId,
     Guid? ReversedByRepaymentId,
+    string? Note,
     DateTime CreatedAtUtc,
     IReadOnlyList<RepaymentAllocationResponse> Allocations);
 

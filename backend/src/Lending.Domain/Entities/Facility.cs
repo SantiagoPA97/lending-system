@@ -101,10 +101,13 @@ public class Facility
         Touch();
     }
 
-    public Repayment RecordRepayment(Money amount, DateOnly paymentDate)
+    public Repayment RecordRepayment(Money amount, DateOnly paymentDate, string? note = null)
     {
         if (Status != FacilityStatus.Active)
             throw new DomainException("facility.not_active", "Repayments can only be recorded on active facilities.");
+        note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        if (note?.Length > 500)
+            throw new DomainException("repayment.note_too_long", "Repayment note must be at most 500 characters.");
         if (amount.Currency != Currency)
             throw new DomainException(
                 "repayment.currency_mismatch",
@@ -168,7 +171,8 @@ public class Facility
             reversesRepaymentId: null,
             allocations
                 .OrderBy(a => a.Key)
-                .Select(a => new RepaymentAllocation(a.Key, a.Value.Interest, a.Value.Principal)));
+                .Select(a => new RepaymentAllocation(a.Key, a.Value.Interest, a.Value.Principal)),
+            note);
         _repayments.Add(repayment);
 
         if (OutstandingPrincipal == 0m)

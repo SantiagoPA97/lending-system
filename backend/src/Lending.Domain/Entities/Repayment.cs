@@ -19,7 +19,8 @@ public class Repayment
         decimal interestApplied,
         bool isReversal,
         Guid? reversesRepaymentId,
-        IEnumerable<RepaymentAllocation> allocations)
+        IEnumerable<RepaymentAllocation> allocations,
+        string? note = null)
     {
         Id = Guid.NewGuid();
         FacilityId = facilityId;
@@ -30,6 +31,7 @@ public class Repayment
         InterestApplied = interestApplied;
         IsReversal = isReversal;
         ReversesRepaymentId = reversesRepaymentId;
+        Note = note;
         CreatedAtUtc = DateTime.UtcNow;
         _allocations.AddRange(allocations);
     }
@@ -44,6 +46,7 @@ public class Repayment
     public bool IsReversal { get; private set; }
     public Guid? ReversesRepaymentId { get; private set; }
     public Guid? ReversedByRepaymentId { get; internal set; }
+    public string? Note { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
 
     public IReadOnlyList<RepaymentAllocation> Allocations => _allocations;

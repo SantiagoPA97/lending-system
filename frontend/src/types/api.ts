@@ -181,6 +181,7 @@ export interface RepaymentResponse {
   isReversal: boolean
   reversesRepaymentId: string | null
   reversedByRepaymentId: string | null
+  note: string | null
   createdAtUtc: string
   allocations: RepaymentAllocationResponse[]
 }
